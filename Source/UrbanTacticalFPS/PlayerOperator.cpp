@@ -8,6 +8,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "WeaponBase.h"
 #include "Engine/World.h"
+#include "Blueprint/UserWidget.h"
 
 // Sets default values
 APlayerOperator::APlayerOperator()
@@ -18,6 +19,10 @@ APlayerOperator::APlayerOperator()
     FirstPersonCamera->SetupAttachment(GetCapsuleComponent());
     FirstPersonCamera->SetRelativeLocation(FVector(0.f, 0.f, 60.f));
     FirstPersonCamera->bUsePawnControlRotation = true;
+
+    WeaponPivot = CreateDefaultSubobject<USceneComponent>(TEXT("WeaponPivot"));
+    WeaponPivot->SetupAttachment(FirstPersonCamera);
+    WeaponPivot->SetRelativeLocation(FVector(40.f, 20.f, -35.f));
     GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
     GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
     GetCharacterMovement()->BrakingDecelerationWalking = 2048.f;
@@ -61,10 +66,48 @@ void APlayerOperator::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 void APlayerOperator::BeginPlay()
 {
     Super::BeginPlay();
+    UE_LOG(LogTemp, Warning, TEXT("=== PlayerOperator Compiled Successfully ==="));
+
+    if (WeaponClass)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("WeaponClass is VALID"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("WeaponClass is NULL"));
+    }
 
     if (GetWorld())
     {
-        EquippedWeapon = GetWorld()->SpawnActor<AWeaponBase>();
+        if (WeaponClass)
+        {
+            EquippedWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass);
+            if (EquippedWeapon)
+            {
+                UE_LOG(LogTemp, Warning, TEXT("Weapon spawned successfully"));
+            }
+            else
+            {
+                UE_LOG(LogTemp, Error, TEXT("Weapon failed to spawn"));
+            }
+
+            if (EquippedWeapon)
+            {
+                EquippedWeapon->AttachToComponent(
+                    WeaponPivot,
+                    FAttachmentTransformRules::SnapToTargetIncludingScale
+                );
+            }
+        }
+    }
+    if (CrosshairClass)
+    {
+        CrosshairWidget = CreateWidget<UUserWidget>(GetWorld(), CrosshairClass);
+
+        if (CrosshairWidget)
+        {
+            CrosshairWidget->AddToViewport();
+        }
     }
 }
 

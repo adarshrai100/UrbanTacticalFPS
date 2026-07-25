@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Components/SceneComponent.h"
+#include "Components/StaticMeshComponent.h"
+
 #include "WeaponBase.generated.h"
 
 UCLASS()
@@ -37,4 +40,10 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float Range = 10000.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	USceneComponent* WeaponRoot;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	UStaticMeshComponent* WeaponMesh;
 };

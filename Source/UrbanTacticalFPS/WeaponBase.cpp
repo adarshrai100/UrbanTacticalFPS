@@ -6,12 +6,21 @@
 #include "Kismet/GameplayStatics.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/PlayerController.h"
+#include "TargetDummy.h"
 
 // Sets default values
 AWeaponBase::AWeaponBase()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+    WeaponRoot = CreateDefaultSubobject<USceneComponent>(TEXT("WeaponRoot"));
+    RootComponent = WeaponRoot;
+
+    WeaponMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("WeaponMesh"));
+    WeaponMesh->SetupAttachment(WeaponRoot);
+
+
+    WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 }
 
@@ -54,17 +63,25 @@ void AWeaponBase::Fire()
 
     if (bHit)
     {
-        UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *Hit.GetActor()->GetName());
+        AActor* HitActor = Hit.GetActor();
 
-        DrawDebugSphere(
-            GetWorld(),
-            Hit.Location,
-            12.f,
-            12,
-            FColor::Red,
-            false,
-            2.f
-        );
+        if (HitActor)
+        {
+            UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitActor->GetName());
+
+            // Apply damage
+            if (HitActor->ActorHasTag("Target"))
+            {
+                // Cast to TargetDummy
+                ATargetDummy* Target = Cast<ATargetDummy>(HitActor);
+                if (Target)
+                {
+                    Target->TakeDamage(Damage);
+                }
+            }
+        }
+
+        DrawDebugSphere(GetWorld(), Hit.Location, 12.f, 12, FColor::Red, false, 2.f);
     }
 
     DrawDebugLine(
