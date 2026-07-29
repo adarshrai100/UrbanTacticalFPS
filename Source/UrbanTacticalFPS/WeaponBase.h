@@ -30,6 +30,7 @@ public:
 	bool bIsFiring = false;
 
 	void Reload();
+	void FinishReload();
 
 protected:
 	// Called when the game starts or when spawned
@@ -82,4 +83,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Ammo")
 	float ReloadTime = 2.2f;
+
+	// Reload
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Ammo")
+	bool bIsReloading = false;
+
+	FTimerHandle ReloadTimer;
 };

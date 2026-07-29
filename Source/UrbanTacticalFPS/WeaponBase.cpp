@@ -43,6 +43,11 @@ void AWeaponBase::Tick(float DeltaTime)
 
 void AWeaponBase::Fire()
 {
+    if (bIsReloading)
+    {
+        return;
+    }
+
     APawn* OwnerPawn = Cast<APawn>(GetOwner());
 
     if (!OwnerPawn)
@@ -206,6 +211,11 @@ void AWeaponBase::StopFire()
 
 void AWeaponBase::Reload()
 {
+    if (bIsReloading)
+    {
+        return;
+    }
+
     if (CurrentAmmo == MagazineSize)
     {
         UE_LOG(LogTemp, Warning, TEXT("Magazine already full"));
@@ -218,6 +228,22 @@ void AWeaponBase::Reload()
         return;
     }
 
+    bIsReloading = true;
+    StopFire();
+
+    UE_LOG(LogTemp, Warning, TEXT("Reloading..."));
+
+    GetWorldTimerManager().SetTimer(
+        ReloadTimer,
+        this,
+        &AWeaponBase::FinishReload,
+        ReloadTime,
+        false
+    );
+}
+
+void AWeaponBase::FinishReload()
+{
     int32 AmmoNeeded = MagazineSize - CurrentAmmo;
 
     int32 AmmoToLoad = FMath::Min(
@@ -228,10 +254,12 @@ void AWeaponBase::Reload()
     CurrentAmmo += AmmoToLoad;
     ReserveAmmo -= AmmoToLoad;
 
+    bIsReloading = false;
+
     UE_LOG(
         LogTemp,
         Warning,
-        TEXT("Reloaded: %d / %d"),
+        TEXT("Reload Complete: %d / %d"),
         CurrentAmmo,
         ReserveAmmo
     );
