@@ -16,7 +16,8 @@ public class UrbanTacticalFPS : ModuleRules
     "EnhancedInput",
     "UMG",
     "Slate",
-    "SlateCore"
+    "SlateCore",
+    "Niagara"
         });
     }
 }

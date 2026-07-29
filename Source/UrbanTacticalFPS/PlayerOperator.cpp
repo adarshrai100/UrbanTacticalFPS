@@ -61,6 +61,16 @@ void APlayerOperator::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
     PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &APlayerOperator::StartFire);
     PlayerInputComponent->BindAction("Fire", IE_Released, this, &APlayerOperator::StopFire);
+
+    PlayerInputComponent->BindAction("ADS", IE_Pressed, this, &APlayerOperator::StartADS);
+    PlayerInputComponent->BindAction("ADS", IE_Released, this, &APlayerOperator::StopADS);
+
+    PlayerInputComponent->BindAction(
+        "Reload",
+        IE_Pressed,
+        this,
+        &APlayerOperator::ReloadWeapon
+    );
 }
 
 void APlayerOperator::BeginPlay()
@@ -82,20 +92,14 @@ void APlayerOperator::BeginPlay()
         if (WeaponClass)
         {
             EquippedWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass);
-            if (EquippedWeapon)
-            {
-                UE_LOG(LogTemp, Warning, TEXT("Weapon spawned successfully"));
-            }
-            else
-            {
-                UE_LOG(LogTemp, Error, TEXT("Weapon failed to spawn"));
-            }
 
             if (EquippedWeapon)
             {
+                EquippedWeapon->SetOwner(this);
+
                 EquippedWeapon->AttachToComponent(
                     WeaponPivot,
-                    FAttachmentTransformRules::SnapToTargetIncludingScale
+                    FAttachmentTransformRules::SnapToTargetNotIncludingScale
                 );
             }
         }
@@ -109,6 +113,7 @@ void APlayerOperator::BeginPlay()
             CrosshairWidget->AddToViewport();
         }
     }
+    FirstPersonCamera->SetFieldOfView(HipFOV);
 }
 
 void APlayerOperator::MoveForward(float Value)
@@ -176,13 +181,86 @@ void APlayerOperator::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    CurrentLean = FMath::FInterpTo(CurrentLean, TargetLean, DeltaTime, LeanSpeed);
+    // Smooth Lean
+    CurrentLean = FMath::FInterpTo(
+        CurrentLean,
+        TargetLean,
+        DeltaTime,
+        LeanSpeed
+    );
 
-    FVector CameraLocation = FVector(0.f, CurrentLean, 60.f);
+    CurrentYawOffset = FMath::FInterpTo(
+        CurrentYawOffset,
+        TargetYawOffset,
+        DeltaTime,
+        25.f
+    );
+
+    // Lean Position
+    FVector CameraLocation(0.f, CurrentLean, 60.f);
     FirstPersonCamera->SetRelativeLocation(CameraLocation);
 
+    // Smooth ADS weapon movement
+    FVector TargetWeaponLocation = bIsADS ? ADSLocation : HipFireLocation;
+
+    FVector NewWeaponLocation = FMath::VInterpTo(
+        WeaponPivot->GetRelativeLocation(),
+        TargetWeaponLocation,
+        DeltaTime,
+        ADSInterpolationSpeed
+    );
+
+    WeaponPivot->SetRelativeLocation(NewWeaponLocation);
+
+    // Lean Rotation
     float Roll = (CurrentLean / LeanOffset) * LeanAngle;
-    FirstPersonCamera->SetRelativeRotation(FRotator(0.f, 0.f, Roll));
+    FirstPersonCamera->SetRelativeRotation(
+        FRotator(0.f, 0.f, Roll)
+    );
+
+    // Smooth Recoil
+    CurrentRecoilOffset = FMath::FInterpTo(
+        CurrentRecoilOffset,
+        TargetRecoilOffset,
+        DeltaTime,
+        25.f
+    );
+
+    float DeltaPitch = CurrentRecoilOffset - PreviousRecoilOffset;
+    float DeltaYaw = CurrentYawOffset - PreviousYawOffset;
+
+    AddControllerPitchInput(-DeltaPitch);
+    AddControllerYawInput(DeltaYaw);
+
+    PreviousRecoilOffset = CurrentRecoilOffset;
+    PreviousYawOffset = CurrentYawOffset;
+
+    // Recover recoil
+    TargetRecoilOffset = FMath::FInterpTo(
+        TargetRecoilOffset,
+        0.f,
+        DeltaTime,
+        EquippedWeapon ? EquippedWeapon->GetRecoilRecoverySpeed() : 10.f
+    );
+
+    TargetYawOffset = FMath::FInterpTo(
+        TargetYawOffset,
+        0.f,
+        DeltaTime,
+        EquippedWeapon ? EquippedWeapon->GetRecoilRecoverySpeed() : 10.f
+    );
+
+    // Smooth ADS camera zoom
+    float TargetFOV = bIsADS ? ADSFOV : HipFOV;
+
+    float NewFOV = FMath::FInterpTo(
+        FirstPersonCamera->FieldOfView,
+        TargetFOV,
+        DeltaTime,
+        FOVInterpolationSpeed
+    );
+
+    FirstPersonCamera->SetFieldOfView(NewFOV);
 }
 
 void APlayerOperator::StartFire()
@@ -198,6 +276,60 @@ void APlayerOperator::StopFire()
     if (EquippedWeapon)
     {
         EquippedWeapon->StopFire();
+    }
+}
+
+void APlayerOperator::AddRecoil()
+{
+    if (!EquippedWeapon)
+    {
+        return;
+    }
+
+    float RecoilMultiplier = bIsADS ? ADSRecoilMultiplier : 1.0f;
+
+    // Vertical recoil
+    TargetRecoilOffset += EquippedWeapon->GetVerticalRecoil() * RecoilMultiplier;
+    TargetRecoilOffset = FMath::Clamp(TargetRecoilOffset, 0.f, 15.f);
+
+    // Horizontal recoil
+    TargetYawOffset += FMath::FRandRange(
+        -EquippedWeapon->GetHorizontalRecoil(),
+        EquippedWeapon->GetHorizontalRecoil()
+    ) * RecoilMultiplier;
+
+    TargetYawOffset = FMath::Clamp(
+        TargetYawOffset,
+        -4.f,
+        4.f
+    );
+}
+
+void APlayerOperator::StartADS()
+{
+    bIsADS = true;
+
+    if (CrosshairWidget)
+    {
+        CrosshairWidget->SetVisibility(ESlateVisibility::Hidden);
+    }
+}
+
+void APlayerOperator::StopADS()
+{
+    bIsADS = false;
+
+    if (CrosshairWidget)
+    {
+        CrosshairWidget->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
+void APlayerOperator::ReloadWeapon()
+{
+    if (EquippedWeapon)
+    {
+        EquippedWeapon->Reload();
     }
 }
 

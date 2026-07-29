@@ -17,6 +17,8 @@ class URBANTACTICALFPS_API APlayerOperator : public ACharacter
 
 public:
     APlayerOperator();
+    void AddRecoil();
+    void ReloadWeapon();
 
 protected:
 
@@ -47,6 +49,10 @@ protected:
     void StopLean();
     void StartFire();
     void StopFire();
+    void StartADS();
+    void StopADS();
+
+
 
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -65,4 +71,38 @@ protected:
     TSubclassOf<UUserWidget> CrosshairClass;
 
     UUserWidget* CrosshairWidget;
+
+
+
+
+    float CurrentRecoilOffset = 0.f;
+    float TargetRecoilOffset = 0.f;
+    float PreviousRecoilOffset = 0.f;   
+    float CurrentYawOffset = 0.f;
+    float TargetYawOffset = 0.f;
+    float PreviousYawOffset = 0.f;
+
+    // ADS
+    UPROPERTY(EditAnywhere, Category = "Weapon|ADS")
+    FVector HipFireLocation = FVector(40.f, 20.f, -35.f);
+
+    UPROPERTY(EditAnywhere, Category = "Weapon|ADS")
+    FVector ADSLocation = FVector(10.f, 5.f, -20.f);
+
+    UPROPERTY(EditAnywhere, Category = "Weapon|ADS")
+    float ADSInterpolationSpeed = 12.f;
+
+    UPROPERTY(EditAnywhere, Category = "Weapon|ADS")
+    float HipFOV = 90.f;
+
+    UPROPERTY(EditAnywhere, Category = "Weapon|ADS")
+    float ADSFOV = 70.f;
+
+    UPROPERTY(EditAnywhere, Category = "Weapon|ADS")
+    float FOVInterpolationSpeed = 10.f;
+
+    UPROPERTY(EditAnywhere, Category = "Weapon|ADS")
+    float ADSRecoilMultiplier = 0.5f;
+
+    bool bIsADS = false;
 };

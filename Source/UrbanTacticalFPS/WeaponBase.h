@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
+#include "NiagaraSystem.h"
 
 #include "WeaponBase.generated.h"
 
@@ -22,7 +23,13 @@ public:
 	void StopFire();
 	FTimerHandle FireTimer;
 
+	float GetVerticalRecoil() const { return VerticalRecoil; }
+	float GetHorizontalRecoil() const { return HorizontalRecoil; }
+	float GetRecoilRecoverySpeed() const { return RecoilRecoverySpeed; }
+
 	bool bIsFiring = false;
+
+	void Reload();
 
 protected:
 	// Called when the game starts or when spawned
@@ -46,4 +53,33 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	UStaticMeshComponent* WeaponMesh;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
+	USceneComponent* MuzzlePoint;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
+	UNiagaraSystem* MuzzleFlash;
+
+	// Recoil
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Recoil")
+	float VerticalRecoil = 2.0f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Recoil")
+	float HorizontalRecoil = 0.4f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Recoil")
+	float RecoilRecoverySpeed = 10.0f;
+
+	// Ammo
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Ammo")
+	int32 MagazineSize = 30;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Ammo")
+	int32 CurrentAmmo = 30;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Ammo")
+	int32 ReserveAmmo = 120;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Ammo")
+	float ReloadTime = 2.2f;
 };
