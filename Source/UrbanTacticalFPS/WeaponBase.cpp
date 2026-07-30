@@ -175,6 +175,10 @@ void AWeaponBase::Fire()
     }
 
     CurrentAmmo--;
+    if (Player)
+    {
+        Player->UpdateAmmoUI();
+    }
 
     UE_LOG(
         LogTemp,
@@ -254,6 +258,11 @@ void AWeaponBase::FinishReload()
     CurrentAmmo += AmmoToLoad;
     ReserveAmmo -= AmmoToLoad;
 
+    if (APlayerOperator* Player = Cast<APlayerOperator>(GetOwner()))
+    {
+        Player->UpdateAmmoUI();
+    }
+
     bIsReloading = false;
 
     UE_LOG(
@@ -263,4 +272,14 @@ void AWeaponBase::FinishReload()
         CurrentAmmo,
         ReserveAmmo
     );
+}
+
+int32 AWeaponBase::GetCurrentAmmo() const
+{
+    return CurrentAmmo;
+}
+
+int32 AWeaponBase::GetReserveAmmo() const
+{
+    return ReserveAmmo;
 }

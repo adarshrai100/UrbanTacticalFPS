@@ -32,6 +32,9 @@ public:
 	void Reload();
 	void FinishReload();
 
+	int32 GetCurrentAmmo() const;
+	int32 GetReserveAmmo() const;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

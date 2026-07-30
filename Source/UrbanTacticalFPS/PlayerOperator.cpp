@@ -104,13 +104,14 @@ void APlayerOperator::BeginPlay()
             }
         }
     }
-    if (CrosshairClass)
+    if (HUDClass)
     {
-        CrosshairWidget = CreateWidget<UUserWidget>(GetWorld(), CrosshairClass);
+        HUDWidget = CreateWidget<UFPSHUDWidget>(GetWorld(), HUDClass, TEXT("HUD"));
 
-        if (CrosshairWidget)
+        if (HUDWidget)
         {
-            CrosshairWidget->AddToViewport();
+            HUDWidget->AddToViewport();
+            UpdateAmmoUI();
         }
     }
     FirstPersonCamera->SetFieldOfView(HipFOV);
@@ -309,9 +310,9 @@ void APlayerOperator::StartADS()
 {
     bIsADS = true;
 
-    if (CrosshairWidget)
+    if (HUDWidget)
     {
-        CrosshairWidget->SetVisibility(ESlateVisibility::Hidden);
+        HUDWidget->HideCrosshair();
     }
 }
 
@@ -319,9 +320,9 @@ void APlayerOperator::StopADS()
 {
     bIsADS = false;
 
-    if (CrosshairWidget)
+    if (HUDWidget)
     {
-        CrosshairWidget->SetVisibility(ESlateVisibility::Visible);
+        HUDWidget->ShowCrosshair();
     }
 }
 
@@ -333,3 +334,18 @@ void APlayerOperator::ReloadWeapon()
     }
 }
 
+AWeaponBase* APlayerOperator::GetEquippedWeapon() const
+{
+    return EquippedWeapon;
+}
+
+void APlayerOperator::UpdateAmmoUI()
+{
+    if (HUDWidget && EquippedWeapon)
+    {
+        HUDWidget->SetAmmo(
+            EquippedWeapon->GetCurrentAmmo(),
+            EquippedWeapon->GetReserveAmmo()
+        );
+    }
+}

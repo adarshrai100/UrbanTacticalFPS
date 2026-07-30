@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "Components/SceneComponent.h"
+#include "FPSHUDWidget.h"
 #include "PlayerOperator.generated.h"
 
 class UCameraComponent;
@@ -19,6 +20,10 @@ public:
     APlayerOperator();
     void AddRecoil();
     void ReloadWeapon();
+    void UpdateAmmoUI();
+
+
+    AWeaponBase* GetEquippedWeapon() const;
 
 protected:
 
@@ -68,9 +73,10 @@ protected:
     AWeaponBase* EquippedWeapon;
 
     UPROPERTY(EditDefaultsOnly, Category = "UI")
-    TSubclassOf<UUserWidget> CrosshairClass;
+    TSubclassOf<UFPSHUDWidget> HUDClass;
 
-    UUserWidget* CrosshairWidget;
+    UPROPERTY()
+    TObjectPtr<UFPSHUDWidget> HUDWidget;
 
 
 
@@ -105,4 +111,7 @@ protected:
     float ADSRecoilMultiplier = 0.5f;
 
     bool bIsADS = false;
+
+
+
 };
