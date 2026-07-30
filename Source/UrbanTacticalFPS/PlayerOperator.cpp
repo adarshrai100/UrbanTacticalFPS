@@ -9,6 +9,7 @@
 #include "WeaponBase.h"
 #include "Engine/World.h"
 #include "Blueprint/UserWidget.h"
+#include "Engine/DamageEvents.h"
 
 // Sets default values
 APlayerOperator::APlayerOperator()
@@ -71,6 +72,13 @@ void APlayerOperator::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
         this,
         &APlayerOperator::ReloadWeapon
     );
+
+    PlayerInputComponent->BindAction(
+        "DebugDamage",
+        IE_Pressed,
+        this,
+        &APlayerOperator::DebugTakeDamage
+    );
 }
 
 void APlayerOperator::BeginPlay()
@@ -115,6 +123,7 @@ void APlayerOperator::BeginPlay()
         }
     }
     FirstPersonCamera->SetFieldOfView(HipFOV);
+    CurrentHealth = MaxHealth;
 }
 
 void APlayerOperator::MoveForward(float Value)
@@ -348,4 +357,48 @@ void APlayerOperator::UpdateAmmoUI()
             EquippedWeapon->GetReserveAmmo()
         );
     }
+}
+
+float APlayerOperator::TakeDamage(
+    float DamageAmount,
+    const FDamageEvent& DamageEvent,
+    AController* EventInstigator,
+    AActor* DamageCauser
+)
+{
+    CurrentHealth -= DamageAmount;
+
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("Player Health: %.0f / %.0f"),
+        CurrentHealth,
+        MaxHealth
+    );
+
+    if (CurrentHealth <= 0.0f)
+    {
+        CurrentHealth = 0.0f;
+
+        Die();
+    }
+
+    return DamageAmount;
+}
+
+void APlayerOperator::DebugTakeDamage()
+{
+    TakeDamage(
+        25.0f,
+        FDamageEvent(),
+        nullptr,
+        nullptr
+    );
+}
+
+void APlayerOperator::Die()
+{
+    UE_LOG(LogTemp, Warning, TEXT("PLAYER DEAD"));
+
+    DisableInput(nullptr);
 }

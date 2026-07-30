@@ -25,6 +25,13 @@ public:
 
     AWeaponBase* GetEquippedWeapon() const;
 
+    virtual float TakeDamage(
+        float DamageAmount,
+        const FDamageEvent& DamageEvent,
+        AController* EventInstigator,
+        AActor* DamageCauser
+    ) override;
+
 protected:
 
     virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
@@ -56,6 +63,8 @@ protected:
     void StopFire();
     void StartADS();
     void StopADS();
+    void DebugTakeDamage();
+    void Die();
 
 
 
@@ -112,6 +121,10 @@ protected:
 
     bool bIsADS = false;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Health")
+    float MaxHealth = 100.0f;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
+    float CurrentHealth = 100.0f;
 
 };
