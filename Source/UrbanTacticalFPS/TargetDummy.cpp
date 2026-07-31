@@ -27,15 +27,29 @@ void ATargetDummy::Tick(float DeltaTime)
 
 }
 
-void ATargetDummy::TakeDamage(float DamageAmount)
+float ATargetDummy::TakeDamage(
+    float DamageAmount,
+    const FDamageEvent& DamageEvent,
+    AController* EventInstigator,
+    AActor* DamageCauser
+)
 {
-	Health -= DamageAmount;
+    Health -= DamageAmount;
 
-	UE_LOG(LogTemp, Warning, TEXT("Target Hit! Health: %f"), Health);
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("Target Hit! Health: %.0f"),
+        Health
+    );
 
-	if (Health <= 0.f)
-	{
-		Destroy();
-	}
+    if (Health <= 0.f)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("TARGET DEAD"));
+
+        Destroy();
+    }
+
+    return DamageAmount;
 }
 

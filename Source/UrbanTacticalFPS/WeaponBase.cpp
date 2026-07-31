@@ -6,7 +6,6 @@
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/Controller.h"
-#include "TargetDummy.h"
 #include "NiagaraFunctionLibrary.h"
 #include "PlayerOperator.h"
 
@@ -134,15 +133,13 @@ void AWeaponBase::Fire()
         {
             UE_LOG(LogTemp, Warning, TEXT("Hit Actor: %s"), *HitActor->GetName());
 
-            if (HitActor->ActorHasTag("Target"))
-            {
-                ATargetDummy* Target = Cast<ATargetDummy>(HitActor);
-
-                if (Target)
-                {
-                    Target->TakeDamage(Damage);
-                }
-            }
+            UGameplayStatics::ApplyDamage(
+                HitActor,
+                Damage,
+                Controller,
+                this,
+                UDamageType::StaticClass()
+            );
         }
 
         DrawDebugSphere(

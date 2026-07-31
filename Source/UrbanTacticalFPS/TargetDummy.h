@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "Engine/DamageEvents.h"
 #include "TargetDummy.generated.h"
 
 UCLASS()
@@ -19,7 +20,12 @@ public:
 
 	float Health = 100.f;
 
-	void TakeDamage(float DamageAmount);
+	virtual float TakeDamage(
+		float DamageAmount,
+		const FDamageEvent& DamageEvent,
+		AController* EventInstigator,
+		AActor* DamageCauser
+	) override;
 
 protected:
 	// Called when the game starts or when spawned
