@@ -124,6 +124,8 @@ void AWeaponBase::Fire()
         TraceEnd,
         ECC_Visibility
     );
+    UE_LOG(LogTemp, Warning, TEXT("Trace Hit: %s"),
+        bHit ? TEXT("TRUE") : TEXT("FALSE"));
 
     if (bHit)
     {
@@ -159,9 +161,9 @@ void AWeaponBase::Fire()
         TraceEnd,
         FColor::Green,
         false,
-        1.f,
+        10.f,
         0,
-        1.f
+        3.f
     );
 
     APlayerOperator* Player = Cast<APlayerOperator>(GetOwner());
