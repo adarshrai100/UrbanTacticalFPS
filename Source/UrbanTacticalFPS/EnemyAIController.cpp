@@ -1,5 +1,6 @@
 #include "EnemyAIController.h"
 #include "Kismet/GameplayStatics.h"
+#include "EnemyBase.h"
 #include "GameFramework/Character.h"
 
 void AEnemyAIController::BeginPlay()
@@ -16,25 +17,32 @@ void AEnemyAIController::Tick(float DeltaTime)
     ACharacter* PlayerCharacter =
         UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 
-    if (PlayerCharacter)
+    AEnemyBase* Enemy =
+        Cast<AEnemyBase>(GetPawn());
+
+    if (!PlayerCharacter || !Enemy)
     {
-        MoveToActor(
-            PlayerCharacter,
-            150.f
-        );
+        return;
     }
 
-    if (PlayerCharacter)
+    float Distance =
+        FVector::Distance(
+            Enemy->GetActorLocation(),
+            PlayerCharacter->GetActorLocation()
+        );
+
+
+    MoveToActor(
+        PlayerCharacter,
+        Enemy->AttackRange
+    );
+
+    if (Distance <= Enemy->AttackStartRange)
     {
-        APawn* ControlledPawn = GetPawn();
-
-        if (ControlledPawn)
-        {
-            UE_LOG(LogTemp, Warning,
-                TEXT("Speed: %f"),
-                ControlledPawn->GetVelocity().Size());
-        }
-
-        MoveToActor(PlayerCharacter, 150.f);
+        Enemy->StartAttacking();
+    }
+    else
+    {
+        Enemy->StopAttacking();
     }
 }

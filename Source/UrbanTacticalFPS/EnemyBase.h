@@ -24,6 +24,18 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
     float CurrentHealth = 100.f;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+    float AttackRange = 150.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+    float AttackStartRange = 250.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+    float AttackDamage = 10.f;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+    float AttackInterval = 1.0f;
+
     virtual float TakeDamage(
         float DamageAmount,
         const FDamageEvent& DamageEvent,
@@ -32,4 +44,9 @@ public:
     ) override;
 
     void Die();
+
+    FTimerHandle AttackTimerHandle;
+    void StartAttacking();
+    void StopAttacking();
+    void AttackPlayer();
 };

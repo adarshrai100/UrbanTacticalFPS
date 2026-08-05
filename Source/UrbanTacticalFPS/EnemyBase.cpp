@@ -1,4 +1,6 @@
+#include "Kismet/GameplayStatics.h"
 #include "EnemyBase.h"
+
 
 AEnemyBase::AEnemyBase()
 {
@@ -46,4 +48,42 @@ void AEnemyBase::Die()
     UE_LOG(LogTemp, Warning, TEXT("ENEMY DEAD"));
 
     Destroy();
+}
+
+void AEnemyBase::AttackPlayer()
+{
+    AActor* PlayerActor =
+        UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+
+    if (PlayerActor)
+    {
+        UGameplayStatics::ApplyDamage(
+            PlayerActor,
+            AttackDamage,
+            GetController(),
+            this,
+            UDamageType::StaticClass()
+        );
+    }
+}
+
+void AEnemyBase::StartAttacking()
+{
+    if (!GetWorldTimerManager().IsTimerActive(AttackTimerHandle))
+    {
+        GetWorldTimerManager().SetTimer(
+            AttackTimerHandle,
+            this,
+            &AEnemyBase::AttackPlayer,
+            AttackInterval,
+            true
+        );
+    }
+}
+
+void AEnemyBase::StopAttacking()
+{
+    GetWorldTimerManager().ClearTimer(
+        AttackTimerHandle
+    );
 }
