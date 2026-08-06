@@ -1,6 +1,6 @@
-#include "Kismet/GameplayStatics.h"
 #include "EnemyBase.h"
-
+#include "Kismet/GameplayStatics.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 AEnemyBase::AEnemyBase()
 {
@@ -35,6 +35,11 @@ float AEnemyBase::TakeDamage(
         CurrentHealth
     );
 
+    if (HitReactionMontage)
+    {
+        PlayAnimMontage(HitReactionMontage);
+    }
+
     if (CurrentHealth <= 0.f)
     {
         Die();
@@ -46,8 +51,23 @@ float AEnemyBase::TakeDamage(
 void AEnemyBase::Die()
 {
     UE_LOG(LogTemp, Warning, TEXT("ENEMY DEAD"));
+    StopAttacking();
+    if (DeathMontage)
+    {
+        PlayAnimMontage(DeathMontage);
+    }
 
-    Destroy();
+    SetActorEnableCollision(false);
+
+    GetCharacterMovement()->DisableMovement();
+
+    GetWorldTimerManager().SetTimer(
+        DeathTimerHandle,
+        this,
+        &AEnemyBase::DestroyEnemy,
+        3.0f,
+        false
+    );
 }
 
 void AEnemyBase::AttackPlayer()
@@ -86,4 +106,9 @@ void AEnemyBase::StopAttacking()
     GetWorldTimerManager().ClearTimer(
         AttackTimerHandle
     );
+}
+
+void AEnemyBase::DestroyEnemy()
+{
+    Destroy();
 }

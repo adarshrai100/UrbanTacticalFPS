@@ -36,6 +36,12 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
     float AttackInterval = 1.0f;
 
+    UPROPERTY(EditDefaultsOnly, Category = "Animation")
+    TObjectPtr<UAnimMontage> HitReactionMontage;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Animation")
+    TObjectPtr<UAnimMontage> DeathMontage;
+
     virtual float TakeDamage(
         float DamageAmount,
         const FDamageEvent& DamageEvent,
@@ -44,8 +50,10 @@ public:
     ) override;
 
     void Die();
+    void DestroyEnemy();
 
     FTimerHandle AttackTimerHandle;
+    FTimerHandle DeathTimerHandle;
     void StartAttacking();
     void StopAttacking();
     void AttackPlayer();
