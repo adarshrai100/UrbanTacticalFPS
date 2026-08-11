@@ -31,18 +31,31 @@ void AEnemyAIController::Tick(float DeltaTime)
             PlayerCharacter->GetActorLocation()
         );
 
-
-    MoveToActor(
-        PlayerCharacter,
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("Distance: %f | AttackRange: %f"),
+        Distance,
         Enemy->AttackRange
     );
 
-    if (Distance <= Enemy->AttackStartRange)
+    if (Distance > Enemy->AttackRange)
     {
-        Enemy->StartAttacking();
+        ClearFocus(EAIFocusPriority::Gameplay);
+
+        MoveToActor(
+            PlayerCharacter,
+            MoveAcceptanceDistance
+        );
+
+        Enemy->StopAttacking();
     }
     else
     {
-        Enemy->StopAttacking();
+        StopMovement();
+
+        SetFocus(PlayerCharacter);
+
+        Enemy->StartAttacking();
     }
 }

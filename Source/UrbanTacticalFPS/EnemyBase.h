@@ -24,6 +24,9 @@ public:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
     float CurrentHealth = 100.f;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
+    bool bIsDead = false;
+
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
     float AttackRange = 150.f;
 
@@ -36,11 +39,17 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
     float AttackInterval = 1.0f;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+    bool bIsAttacking = false;
+
     UPROPERTY(EditDefaultsOnly, Category = "Animation")
     TObjectPtr<UAnimMontage> HitReactionMontage;
 
     UPROPERTY(EditDefaultsOnly, Category = "Animation")
     TObjectPtr<UAnimMontage> DeathMontage;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Animation")
+    TObjectPtr<UAnimMontage> FireMontage;
 
     virtual float TakeDamage(
         float DamageAmount,

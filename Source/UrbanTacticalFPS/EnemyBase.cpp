@@ -50,12 +50,9 @@ float AEnemyBase::TakeDamage(
 
 void AEnemyBase::Die()
 {
+    bIsDead = true;
     UE_LOG(LogTemp, Warning, TEXT("ENEMY DEAD"));
     StopAttacking();
-    if (DeathMontage)
-    {
-        PlayAnimMontage(DeathMontage);
-    }
 
     SetActorEnableCollision(false);
 
@@ -84,11 +81,39 @@ void AEnemyBase::AttackPlayer()
             this,
             UDamageType::StaticClass()
         );
+        UE_LOG(LogTemp, Warning, TEXT("ENEMY FIRING"));
     }
 }
 
 void AEnemyBase::StartAttacking()
 {
+    if (!bIsAttacking)
+    {
+        bIsAttacking = true;
+
+        if (FireMontage)
+        {
+            UE_LOG(
+                LogTemp,
+                Warning,
+                TEXT("FireMontage: %s | Length: %f"),
+                *FireMontage->GetName(),
+                FireMontage->GetPlayLength()
+            );
+
+            float MontageLength = PlayAnimMontage(FireMontage);
+
+            UE_LOG(
+                LogTemp,
+                Warning,
+                TEXT("PlayAnimMontage Result: %f"),
+                MontageLength
+            );
+        }
+        UE_LOG(LogTemp, Warning, TEXT("ENEMY START ATTACKING"));
+        AttackPlayer();
+    }
+
     if (!GetWorldTimerManager().IsTimerActive(AttackTimerHandle))
     {
         GetWorldTimerManager().SetTimer(
@@ -103,9 +128,18 @@ void AEnemyBase::StartAttacking()
 
 void AEnemyBase::StopAttacking()
 {
+    UE_LOG(LogTemp, Warning, TEXT("ENEMY STOP ATTACKING"));
+
+    bIsAttacking = false;
+
     GetWorldTimerManager().ClearTimer(
         AttackTimerHandle
     );
+
+    if (FireMontage)
+    {
+        StopAnimMontage(FireMontage);
+    }
 }
 
 void AEnemyBase::DestroyEnemy()
