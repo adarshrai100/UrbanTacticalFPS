@@ -28,3 +28,52 @@ void UFPSHUDWidget::ShowCrosshair()
         CrosshairImage->SetVisibility(ESlateVisibility::Visible);
     }
 }
+
+void UFPSHUDWidget::ShowGameOver()
+{
+    if (GameOverText)
+    {
+        GameOverText->SetVisibility(ESlateVisibility::Visible);
+    }
+
+    if (RestartButton)
+    {
+        RestartButton->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
+void UFPSHUDWidget::HideGameOver()
+{
+    if (GameOverText)
+    {
+        GameOverText->SetVisibility(ESlateVisibility::Hidden);
+    }
+
+    if (RestartButton)
+    {
+        RestartButton->SetVisibility(ESlateVisibility::Hidden);
+    }
+}
+
+
+
+void UFPSHUDWidget::NativeConstruct()
+{
+    Super::NativeConstruct();
+
+    if (RestartButton)
+    {
+        RestartButton->OnClicked.AddDynamic(
+            this,
+            &UFPSHUDWidget::RestartLevel
+        );
+
+        UE_LOG(LogTemp, Warning, TEXT("RestartButton bound successfully"));
+    }
+    else
+    {
+        UE_LOG(LogTemp, Error, TEXT("RestartButton is NULL"));
+    }
+
+    HideGameOver();
+}

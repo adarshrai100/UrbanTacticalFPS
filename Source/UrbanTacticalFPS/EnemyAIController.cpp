@@ -31,13 +31,6 @@ void AEnemyAIController::Tick(float DeltaTime)
             PlayerCharacter->GetActorLocation()
         );
 
-    UE_LOG(
-        LogTemp,
-        Warning,
-        TEXT("Distance: %f | AttackRange: %f"),
-        Distance,
-        Enemy->AttackRange
-    );
 
     if (Distance > Enemy->AttackRange)
     {

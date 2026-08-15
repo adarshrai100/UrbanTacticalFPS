@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "GameFramework/PlayerController.h"
 #include "WeaponBase.h"
 #include "Engine/World.h"
 #include "Blueprint/UserWidget.h"
@@ -119,11 +120,21 @@ void APlayerOperator::BeginPlay()
         if (HUDWidget)
         {
             HUDWidget->AddToViewport();
+            HUDWidget->HideGameOver();
             UpdateAmmoUI();
         }
     }
     FirstPersonCamera->SetFieldOfView(HipFOV);
     CurrentHealth = MaxHealth;
+    bIsDead = false;
+
+    if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+    {
+        PlayerController->bShowMouseCursor = false;
+
+        FInputModeGameOnly InputMode;
+        PlayerController->SetInputMode(InputMode);
+    }
 }
 
 void APlayerOperator::MoveForward(float Value)
@@ -366,6 +377,11 @@ float APlayerOperator::TakeDamage(
     AActor* DamageCauser
 )
 {
+    if (bIsDead)
+    {
+        return 0.0f;
+    }
+
     CurrentHealth -= DamageAmount;
 
     UE_LOG(
@@ -379,7 +395,6 @@ float APlayerOperator::TakeDamage(
     if (CurrentHealth <= 0.0f)
     {
         CurrentHealth = 0.0f;
-
         Die();
     }
 
@@ -398,7 +413,37 @@ void APlayerOperator::DebugTakeDamage()
 
 void APlayerOperator::Die()
 {
+    if (bIsDead)
+    {
+        return;
+    }
+
+    bIsDead = true;
+
     UE_LOG(LogTemp, Warning, TEXT("PLAYER DEAD"));
 
+    if (HUDWidget)
+    {
+        HUDWidget->ShowGameOver();
+    }
+
     DisableInput(nullptr);
+
+    if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+    {
+        PlayerController->bShowMouseCursor = true;
+
+        FInputModeUIOnly InputMode;
+        InputMode.SetWidgetToFocus(HUDWidget->TakeWidget());
+        InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+
+        PlayerController->SetInputMode(InputMode);
+    }
+
+    if (EquippedWeapon)
+    {
+        EquippedWeapon->StopFire();
+    }
+
+    GetCharacterMovement()->DisableMovement();
 }

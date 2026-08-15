@@ -127,4 +127,7 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
     float CurrentHealth = 100.0f;
 
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
+    bool bIsDead = false;
+
 };
