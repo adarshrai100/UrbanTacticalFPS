@@ -24,8 +24,6 @@ public:
 	void HideCrosshair();
 	void ShowGameOver();
 	void HideGameOver();
-	void RestartLevel();
-	virtual void NativeConstruct() override;
 
 protected:
 

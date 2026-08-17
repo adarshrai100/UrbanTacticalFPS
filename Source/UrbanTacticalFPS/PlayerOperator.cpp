@@ -447,3 +447,33 @@ void APlayerOperator::Die()
 
     GetCharacterMovement()->DisableMovement();
 }
+
+void APlayerOperator::PossessedBy(AController* NewController)
+{
+    Super::PossessedBy(NewController);
+
+    if (APlayerController* PlayerController = Cast<APlayerController>(NewController))
+    {
+        // Restore actor input
+        EnableInput(PlayerController);
+
+        // Restore controller input
+        PlayerController->SetIgnoreMoveInput(false);
+        PlayerController->SetIgnoreLookInput(false);
+
+        // Restore movement
+        GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+
+        // Restore FPS input mode
+        PlayerController->bShowMouseCursor = false;
+
+        FInputModeGameOnly InputMode;
+        PlayerController->SetInputMode(InputMode);
+
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT("PLAYER POSSESSED - INPUT AND MOVEMENT RESTORED")
+        );
+    }
+}

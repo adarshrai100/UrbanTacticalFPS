@@ -1,6 +1,7 @@
 #include "EnemyBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "Animation/AnimInstance.h"
 
 AEnemyBase::AEnemyBase()
 {
@@ -26,6 +27,10 @@ float AEnemyBase::TakeDamage(
     AActor* DamageCauser
 )
 {
+    if (bIsDead)
+    {
+        return 0.0f;
+    }
     CurrentHealth -= DamageAmount;
 
     UE_LOG(
@@ -37,7 +42,17 @@ float AEnemyBase::TakeDamage(
 
     if (HitReactionMontage)
     {
-        PlayAnimMontage(HitReactionMontage);
+        UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+
+        const float CurrentTime = GetWorld()->GetTimeSeconds();
+
+        if (AnimInstance &&
+            !AnimInstance->Montage_IsPlaying(HitReactionMontage) &&
+            CurrentTime - LastHitReactionTime >= HitReactionCooldown)
+        {
+            PlayAnimMontage(HitReactionMontage);
+            LastHitReactionTime = CurrentTime;
+        }
     }
 
     if (CurrentHealth <= 0.f)
@@ -50,9 +65,33 @@ float AEnemyBase::TakeDamage(
 
 void AEnemyBase::Die()
 {
+    if (bIsDead)
+    {
+        return;
+    }
+
     bIsDead = true;
+
     UE_LOG(LogTemp, Warning, TEXT("ENEMY DEAD"));
+
     StopAttacking();
+
+    // Stop any currently playing combat animations
+    if (FireMontage)
+    {
+        StopAnimMontage(FireMontage);
+    }
+
+    if (HitReactionMontage)
+    {
+        StopAnimMontage(HitReactionMontage);
+    }
+
+    // Play death animation
+    if (DeathMontage)
+    {
+        PlayAnimMontage(DeathMontage);
+    }
 
     SetActorEnableCollision(false);
 

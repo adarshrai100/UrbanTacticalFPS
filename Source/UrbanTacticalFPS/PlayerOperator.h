@@ -130,4 +130,6 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Health")
     bool bIsDead = false;
 
+    virtual void PossessedBy(AController* NewController) override;
+
 };

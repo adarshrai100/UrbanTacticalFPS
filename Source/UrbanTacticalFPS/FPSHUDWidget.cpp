@@ -56,24 +56,3 @@ void UFPSHUDWidget::HideGameOver()
 }
 
 
-
-void UFPSHUDWidget::NativeConstruct()
-{
-    Super::NativeConstruct();
-
-    if (RestartButton)
-    {
-        RestartButton->OnClicked.AddDynamic(
-            this,
-            &UFPSHUDWidget::RestartLevel
-        );
-
-        UE_LOG(LogTemp, Warning, TEXT("RestartButton bound successfully"));
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("RestartButton is NULL"));
-    }
-
-    HideGameOver();
-}

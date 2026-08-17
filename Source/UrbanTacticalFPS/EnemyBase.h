@@ -34,7 +34,7 @@ public:
     float AttackStartRange = 250.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
-    float AttackDamage = 10.f;
+    float AttackDamage = 2.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
     float AttackInterval = 1.0f;
@@ -50,6 +50,11 @@ public:
 
     UPROPERTY(EditDefaultsOnly, Category = "Animation")
     TObjectPtr<UAnimMontage> FireMontage;
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Animation")
+    float HitReactionCooldown = 0.5f;
+
+    float LastHitReactionTime = -100.f;
 
     virtual float TakeDamage(
         float DamageAmount,
