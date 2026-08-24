@@ -111,7 +111,30 @@ void AEnemyBase::AttackPlayer()
     AActor* PlayerActor =
         UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 
-    if (PlayerActor)
+    if (!PlayerActor)
+    {
+        return;
+    }
+
+    FVector StartLocation = GetActorLocation() + FVector(0.f, 0.f, 60.f);
+
+    FVector EndLocation =
+        PlayerActor->GetActorLocation() + FVector(0.f, 0.f, 50.f);
+
+    FHitResult HitResult;
+
+    FCollisionQueryParams QueryParams;
+    QueryParams.AddIgnoredActor(this);
+
+    bool bHit = GetWorld()->LineTraceSingleByChannel(
+        HitResult,
+        StartLocation,
+        EndLocation,
+        ECC_Visibility,
+        QueryParams
+    );
+
+    if (bHit && HitResult.GetActor() == PlayerActor)
     {
         UGameplayStatics::ApplyDamage(
             PlayerActor,
@@ -120,7 +143,20 @@ void AEnemyBase::AttackPlayer()
             this,
             UDamageType::StaticClass()
         );
-        UE_LOG(LogTemp, Warning, TEXT("ENEMY FIRING"));
+
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT("ENEMY FIRING - LINE OF SIGHT")
+        );
+    }
+    else
+    {
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT("ENEMY CANNOT FIRE - OBSTRUCTED")
+        );
     }
 }
 

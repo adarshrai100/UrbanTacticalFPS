@@ -16,5 +16,5 @@ public:
     virtual void Tick(float DeltaTime) override;
 
     UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "AI")
-    float MoveAcceptanceDistance = 150.f;
+    float MoveAcceptanceDistance = 50.f;
 };
