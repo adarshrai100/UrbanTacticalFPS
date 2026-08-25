@@ -24,6 +24,7 @@ public:
 
 
     AWeaponBase* GetEquippedWeapon() const;
+    UFPSHUDWidget* GetHUDWidget() const;
 
     virtual float TakeDamage(
         float DamageAmount,

@@ -55,4 +55,27 @@ void UFPSHUDWidget::HideGameOver()
     }
 }
 
+void UFPSHUDWidget::SetObjectiveText(const FText& Text)
+{
+    if (ObjectiveText)
+    {
+        ObjectiveText->SetText(Text);
+        ObjectiveText->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
+void UFPSHUDWidget::ShowMissionComplete()
+{
+    if (ObjectiveText)
+    {
+        ObjectiveText->SetText(
+            FText::FromString(TEXT("MISSION COMPLETE"))
+        );
+
+        ObjectiveText->SetVisibility(
+            ESlateVisibility::Visible
+        );
+    }
+}
+
 

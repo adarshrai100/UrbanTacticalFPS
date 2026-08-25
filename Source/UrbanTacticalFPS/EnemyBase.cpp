@@ -2,6 +2,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/AnimInstance.h"
+#include "UrbanTacticalFPSGameMode.h"
 
 AEnemyBase::AEnemyBase()
 {
@@ -71,6 +72,14 @@ void AEnemyBase::Die()
     }
 
     bIsDead = true;
+
+    AUrbanTacticalFPSGameMode* GameMode =
+        GetWorld()->GetAuthGameMode<AUrbanTacticalFPSGameMode>();
+
+    if (GameMode)
+    {
+        GameMode->EnemyDied();
+    }
 
     UE_LOG(LogTemp, Warning, TEXT("ENEMY DEAD"));
 

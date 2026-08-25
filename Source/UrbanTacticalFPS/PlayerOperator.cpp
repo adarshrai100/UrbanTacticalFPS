@@ -11,6 +11,7 @@
 #include "Engine/World.h"
 #include "Blueprint/UserWidget.h"
 #include "Engine/DamageEvents.h"
+#include "UrbanTacticalFPSGameMode.h"
 
 // Sets default values
 APlayerOperator::APlayerOperator()
@@ -122,6 +123,11 @@ void APlayerOperator::BeginPlay()
             HUDWidget->AddToViewport();
             HUDWidget->HideGameOver();
             UpdateAmmoUI();
+            if (AUrbanTacticalFPSGameMode* GameMode =
+                GetWorld()->GetAuthGameMode<AUrbanTacticalFPSGameMode>())
+            {
+                GameMode->RefreshObjective();
+            }
         }
     }
     FirstPersonCamera->SetFieldOfView(HipFOV);
@@ -476,4 +482,9 @@ void APlayerOperator::PossessedBy(AController* NewController)
             TEXT("PLAYER POSSESSED - INPUT AND MOVEMENT RESTORED")
         );
     }
+}
+
+UFPSHUDWidget* APlayerOperator::GetHUDWidget() const
+{
+    return HUDWidget;
 }

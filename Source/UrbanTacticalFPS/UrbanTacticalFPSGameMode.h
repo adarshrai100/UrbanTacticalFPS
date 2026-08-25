@@ -1,5 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -9,11 +7,23 @@
 UCLASS(minimalapi)
 class AUrbanTacticalFPSGameMode : public AGameModeBase
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
 public:
-	AUrbanTacticalFPSGameMode();
+    AUrbanTacticalFPSGameMode();
+
+    virtual void BeginPlay() override;
+
+    void EnemyDied();
+    void RefreshObjective();
+
+    int32 GetRemainingEnemies() const;
+
+private:
+
+    int32 RemainingEnemies = 0;
+
+    void InitializeEnemyCount();
+
+    bool bMissionComplete = false;
 };
-
-
-

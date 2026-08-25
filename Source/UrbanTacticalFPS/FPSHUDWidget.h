@@ -24,6 +24,8 @@ public:
 	void HideCrosshair();
 	void ShowGameOver();
 	void HideGameOver();
+	void SetObjectiveText(const FText& Text);
+	void ShowMissionComplete();
 
 protected:
 
@@ -38,5 +40,8 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> RestartButton;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> ObjectiveText;
 	
 };
