@@ -64,17 +64,22 @@ void UFPSHUDWidget::SetObjectiveText(const FText& Text)
     }
 }
 
+
 void UFPSHUDWidget::ShowMissionComplete()
 {
     if (ObjectiveText)
     {
-        ObjectiveText->SetText(
-            FText::FromString(TEXT("MISSION COMPLETE"))
-        );
+        ObjectiveText->SetVisibility(ESlateVisibility::Hidden);
+    }
 
-        ObjectiveText->SetVisibility(
-            ESlateVisibility::Visible
-        );
+    if (MissionCompleteText)
+    {
+        MissionCompleteText->SetVisibility(ESlateVisibility::Visible);
+    }
+
+    if (ContinueButton)
+    {
+        ContinueButton->SetVisibility(ESlateVisibility::Visible);
     }
 }
 

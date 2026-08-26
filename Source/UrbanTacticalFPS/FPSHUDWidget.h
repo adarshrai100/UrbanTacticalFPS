@@ -43,5 +43,11 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UTextBlock> ObjectiveText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UTextBlock> MissionCompleteText;
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UButton> ContinueButton;
 	
 };
