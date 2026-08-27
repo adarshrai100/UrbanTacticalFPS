@@ -91,7 +91,7 @@ void AUrbanTacticalFPSGameMode::EnemyDied()
 
         if (Player)
         {
-            // We'll connect the final mission-complete behavior here next.
+            Player->SetMissionCompleteState();
         }
     }
 }

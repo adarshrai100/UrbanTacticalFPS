@@ -21,6 +21,7 @@ public:
     void AddRecoil();
     void ReloadWeapon();
     void UpdateAmmoUI();
+    void SetMissionCompleteState();
 
 
     AWeaponBase* GetEquippedWeapon() const;
@@ -66,6 +67,7 @@ protected:
     void StopADS();
     void DebugTakeDamage();
     void Die();
+
 
 
 

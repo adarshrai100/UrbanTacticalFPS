@@ -488,3 +488,45 @@ UFPSHUDWidget* APlayerOperator::GetHUDWidget() const
 {
     return HUDWidget;
 }
+
+void APlayerOperator::SetMissionCompleteState()
+{
+    if (bIsDead)
+    {
+        return;
+    }
+
+    DisableInput(nullptr);
+
+    if (EquippedWeapon)
+    {
+        EquippedWeapon->StopFire();
+    }
+
+    if (APlayerController* PlayerController =
+        Cast<APlayerController>(GetController()))
+    {
+        PlayerController->bShowMouseCursor = true;
+
+        FInputModeUIOnly InputMode;
+
+        if (HUDWidget)
+        {
+            InputMode.SetWidgetToFocus(HUDWidget->TakeWidget());
+        }
+
+        InputMode.SetLockMouseToViewportBehavior(
+            EMouseLockMode::DoNotLock
+        );
+
+        PlayerController->SetInputMode(InputMode);
+    }
+
+    GetCharacterMovement()->DisableMovement();
+
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("MISSION COMPLETE - PLAYER CONTROL LOCKED")
+    );
+}

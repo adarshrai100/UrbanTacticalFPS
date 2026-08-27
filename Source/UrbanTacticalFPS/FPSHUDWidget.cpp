@@ -1,4 +1,5 @@
 #include "FPSHUDWidget.h"
+#include "Kismet/GameplayStatics.h"
 #include "Components/TextBlock.h"
 
 void UFPSHUDWidget::SetAmmo(int32 CurrentAmmo, int32 ReserveAmmo)
@@ -83,4 +84,24 @@ void UFPSHUDWidget::ShowMissionComplete()
     }
 }
 
+void UFPSHUDWidget::OnContinueClicked()
+{
+    UGameplayStatics::OpenLevel(
+        this,
+        FName(TEXT("L_TacticalMission"))
+    );
+}
+
+void UFPSHUDWidget::NativeConstruct()
+{
+    Super::NativeConstruct();
+
+    if (ContinueButton)
+    {
+        ContinueButton->OnClicked.AddDynamic(
+            this,
+            &UFPSHUDWidget::OnContinueClicked
+        );
+    }
+}
 

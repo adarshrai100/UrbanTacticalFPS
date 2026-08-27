@@ -9,6 +9,7 @@
 #include "Components/Button.h"
 #include "FPSHUDWidget.generated.h"
 
+
 /**
  * 
  */
@@ -26,6 +27,8 @@ public:
 	void HideGameOver();
 	void SetObjectiveText(const FText& Text);
 	void ShowMissionComplete();
+
+	virtual void NativeConstruct() override;
 
 protected:
 
@@ -49,5 +52,8 @@ protected:
 
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<UButton> ContinueButton;
+
+	UFUNCTION()
+	void OnContinueClicked();
 	
 };
