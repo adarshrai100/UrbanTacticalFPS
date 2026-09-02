@@ -1,6 +1,8 @@
 #include "FPSHUDWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/TextBlock.h"
+#include "Components/Image.h"
+#include "TimerManager.h"
 
 void UFPSHUDWidget::SetAmmo(int32 CurrentAmmo, int32 ReserveAmmo)
 {
@@ -96,6 +98,11 @@ void UFPSHUDWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
+    if (DamageOverlay)
+    {
+        DamageOverlay->SetRenderOpacity(0.0f);
+    }
+
     if (ContinueButton)
     {
         ContinueButton->OnClicked.AddDynamic(
@@ -104,4 +111,39 @@ void UFPSHUDWidget::NativeConstruct()
         );
     }
 }
+
+void UFPSHUDWidget::ShowDamageEffect()
+{
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("SHOW DAMAGE EFFECT CALLED | Overlay Valid: %s"),
+        DamageOverlay ? TEXT("YES") : TEXT("NO")
+    );
+
+    if (!DamageOverlay)
+    {
+        return;
+    }
+
+    DamageOverlay->SetRenderOpacity(0.35f);
+
+    GetWorld()->GetTimerManager().SetTimer(
+        DamageEffectTimer,
+        this,
+        &UFPSHUDWidget::HideDamageEffect,
+        0.1f,
+        false
+    );
+}
+
+void UFPSHUDWidget::HideDamageEffect()
+{
+    if (DamageOverlay)
+    {
+        DamageOverlay->SetRenderOpacity(0.0f);
+    }
+}
+
+
 

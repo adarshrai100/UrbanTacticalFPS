@@ -4,6 +4,10 @@
 #include "GameFramework/Character.h"
 #include "EnemyBase.generated.h"
 
+class USceneComponent;
+class UPointLightComponent;
+class UNiagaraSystem;
+
 UCLASS()
 class URBANTACTICALFPS_API AEnemyBase : public ACharacter
 {
@@ -68,7 +72,22 @@ public:
 
     FTimerHandle AttackTimerHandle;
     FTimerHandle DeathTimerHandle;
+    FTimerHandle MuzzleFlashTimer;
     void StartAttacking();
     void StopAttacking();
     void AttackPlayer();
+
+    void ShowMuzzleFlash();
+    void HideMuzzleFlash();
+
+
+
+    UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
+    TObjectPtr<USceneComponent> EnemyMuzzlePoint;
+
+    UPROPERTY()
+    TObjectPtr<UPointLightComponent> MuzzleFlashLight;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Effects")
+    TObjectPtr<UNiagaraSystem> MuzzleFlashEffect;
 };

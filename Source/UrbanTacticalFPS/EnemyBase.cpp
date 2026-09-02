@@ -3,10 +3,29 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Animation/AnimInstance.h"
 #include "UrbanTacticalFPSGameMode.h"
+#include "Components/SceneComponent.h"
+#include "Components/PointLightComponent.h"
+#include "TimerManager.h"
+#include "NiagaraFunctionLibrary.h"
+#include "NiagaraSystem.h"
 
 AEnemyBase::AEnemyBase()
 {
     PrimaryActorTick.bCanEverTick = true;
+
+    MuzzleFlashLight = CreateDefaultSubobject<UPointLightComponent>(
+        TEXT("MuzzleFlashLight")
+    );
+
+    MuzzleFlashLight->SetupAttachment(RootComponent);
+
+    MuzzleFlashLight->SetIntensity(0.0f);
+
+    MuzzleFlashLight->SetLightColor(
+        FColor(255, 180, 80)
+    );
+
+    MuzzleFlashLight->SetAttenuationRadius(250.0f);
 }
 
 void AEnemyBase::BeginPlay()
@@ -14,6 +33,44 @@ void AEnemyBase::BeginPlay()
     Super::BeginPlay();
 
     CurrentHealth = MaxHealth;
+    EnemyMuzzlePoint = FindComponentByClass<USceneComponent>();
+    TArray<USceneComponent*> SceneComponents;
+    GetComponents<USceneComponent>(SceneComponents);
+
+    for (USceneComponent* Component : SceneComponents)
+    {
+        if (Component && Component->GetName() == TEXT("MuzzlePoint"))
+        {
+            EnemyMuzzlePoint = Component;
+            break;
+        }
+    }
+
+    if (EnemyMuzzlePoint)
+    {
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT("MUZZLE POINT FOUND: %s"),
+            *EnemyMuzzlePoint->GetName()
+        );
+    }
+    else
+    {
+        UE_LOG(
+            LogTemp,
+            Error,
+            TEXT("MUZZLE POINT NOT FOUND")
+        );
+    }
+
+    if (EnemyMuzzlePoint && MuzzleFlashLight)
+    {
+        MuzzleFlashLight->AttachToComponent(
+            EnemyMuzzlePoint,
+            FAttachmentTransformRules::SnapToTargetNotIncludingScale
+        );
+    }
 }
 
 void AEnemyBase::Tick(float DeltaTime)
@@ -125,7 +182,8 @@ void AEnemyBase::AttackPlayer()
         return;
     }
 
-    FVector StartLocation = GetActorLocation() + FVector(0.f, 0.f, 60.f);
+    FVector StartLocation =
+        GetActorLocation() + FVector(0.f, 0.f, 60.f);
 
     FVector EndLocation =
         PlayerActor->GetActorLocation() + FVector(0.f, 0.f, 50.f);
@@ -135,15 +193,32 @@ void AEnemyBase::AttackPlayer()
     FCollisionQueryParams QueryParams;
     QueryParams.AddIgnoredActor(this);
 
-    bool bHit = GetWorld()->LineTraceSingleByChannel(
-        HitResult,
-        StartLocation,
-        EndLocation,
-        ECC_Visibility,
-        QueryParams
+    TArray<AActor*> Enemies;
+
+    UGameplayStatics::GetAllActorsOfClass(
+        GetWorld(),
+        AEnemyBase::StaticClass(),
+        Enemies
     );
 
-    if (bHit && HitResult.GetActor() == PlayerActor)
+    for (AActor* EnemyActor : Enemies)
+    {
+        QueryParams.AddIgnoredActor(EnemyActor);
+    }
+
+    const bool bHit =
+        GetWorld()->LineTraceSingleByChannel(
+            HitResult,
+            StartLocation,
+            EndLocation,
+            ECC_Visibility,
+            QueryParams
+        );
+
+    const bool bHasLineOfSight =
+        !bHit || HitResult.GetActor() == PlayerActor;
+
+    if (bHasLineOfSight)
     {
         UGameplayStatics::ApplyDamage(
             PlayerActor,
@@ -152,6 +227,8 @@ void AEnemyBase::AttackPlayer()
             this,
             UDamageType::StaticClass()
         );
+
+        ShowMuzzleFlash();
 
         UE_LOG(
             LogTemp,
@@ -164,7 +241,12 @@ void AEnemyBase::AttackPlayer()
         UE_LOG(
             LogTemp,
             Warning,
-            TEXT("ENEMY CANNOT FIRE - OBSTRUCTED")
+            TEXT(
+                "ENEMY CANNOT FIRE - OBSTRUCTED | Hit: %s"
+            ),
+            HitResult.GetActor()
+            ? *HitResult.GetActor()->GetName()
+            : TEXT("Unknown")
         );
     }
 }
@@ -212,7 +294,7 @@ void AEnemyBase::StartAttacking()
 
 void AEnemyBase::StopAttacking()
 {
-    UE_LOG(LogTemp, Warning, TEXT("ENEMY STOP ATTACKING"));
+    //UE_LOG(LogTemp, Warning, TEXT("ENEMY STOP ATTACKING"));
 
     bIsAttacking = false;
 
@@ -229,4 +311,38 @@ void AEnemyBase::StopAttacking()
 void AEnemyBase::DestroyEnemy()
 {
     Destroy();
+}
+
+void AEnemyBase::ShowMuzzleFlash()
+{
+    if (MuzzleFlashLight)
+    {
+        MuzzleFlashLight->SetIntensity(5000.0f);
+    }
+
+    if (MuzzleFlashEffect && EnemyMuzzlePoint)
+    {
+        UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+            GetWorld(),
+            MuzzleFlashEffect,
+            EnemyMuzzlePoint->GetComponentLocation(),
+            EnemyMuzzlePoint->GetComponentRotation()
+        );
+    }
+
+    GetWorld()->GetTimerManager().SetTimer(
+        MuzzleFlashTimer,
+        this,
+        &AEnemyBase::HideMuzzleFlash,
+        0.05f,
+        false
+    );
+}
+
+void AEnemyBase::HideMuzzleFlash()
+{
+    if (MuzzleFlashLight)
+    {
+        MuzzleFlashLight->SetIntensity(0.0f);
+    }
 }

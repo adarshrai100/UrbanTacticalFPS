@@ -30,6 +30,9 @@ public:
 
 	virtual void NativeConstruct() override;
 
+	void ShowDamageEffect();
+	void HideDamageEffect();
+
 protected:
 
 	UPROPERTY(meta = (BindWidget))
@@ -55,5 +58,10 @@ protected:
 
 	UFUNCTION()
 	void OnContinueClicked();
+
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<UImage> DamageOverlay;
+
+	FTimerHandle DamageEffectTimer;
 	
 };

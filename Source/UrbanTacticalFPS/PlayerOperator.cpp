@@ -390,6 +390,11 @@ float APlayerOperator::TakeDamage(
 
     CurrentHealth -= DamageAmount;
 
+    if (HUDWidget)
+    {
+        HUDWidget->ShowDamageEffect();
+    }
+
     UE_LOG(
         LogTemp,
         Warning,
