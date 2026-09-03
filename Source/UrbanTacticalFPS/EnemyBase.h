@@ -7,6 +7,7 @@
 class USceneComponent;
 class UPointLightComponent;
 class UNiagaraSystem;
+class USoundBase;
 
 UCLASS()
 class URBANTACTICALFPS_API AEnemyBase : public ACharacter
@@ -90,4 +91,7 @@ public:
 
     UPROPERTY(EditDefaultsOnly, Category = "Effects")
     TObjectPtr<UNiagaraSystem> MuzzleFlashEffect;
+
+    UPROPERTY(EditDefaultsOnly, Category = "Audio")
+    TObjectPtr<USoundBase> EnemyFireSound;
 };

@@ -8,6 +8,8 @@
 #include "TimerManager.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 
 AEnemyBase::AEnemyBase()
 {
@@ -174,6 +176,13 @@ void AEnemyBase::Die()
 
 void AEnemyBase::AttackPlayer()
 {
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("ATTACK PLAYER CALLED | Time: %f"),
+        GetWorld()->GetTimeSeconds()
+    );
+
     AActor* PlayerActor =
         UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
 
@@ -235,6 +244,21 @@ void AEnemyBase::AttackPlayer()
             Warning,
             TEXT("ENEMY FIRING - LINE OF SIGHT")
         );
+
+        if (FireMontage)
+        {
+            PlayAnimMontage(FireMontage, 0.1f);;
+        }
+
+        if (EnemyFireSound)
+        {
+            UGameplayStatics::PlaySoundAtLocation(
+                this,
+                EnemyFireSound,
+                GetActorLocation(),
+                0.25f
+            );
+        }
     }
     else
     {
@@ -257,25 +281,6 @@ void AEnemyBase::StartAttacking()
     {
         bIsAttacking = true;
 
-        if (FireMontage)
-        {
-            UE_LOG(
-                LogTemp,
-                Warning,
-                TEXT("FireMontage: %s | Length: %f"),
-                *FireMontage->GetName(),
-                FireMontage->GetPlayLength()
-            );
-
-            float MontageLength = PlayAnimMontage(FireMontage);
-
-            UE_LOG(
-                LogTemp,
-                Warning,
-                TEXT("PlayAnimMontage Result: %f"),
-                MontageLength
-            );
-        }
         UE_LOG(LogTemp, Warning, TEXT("ENEMY START ATTACKING"));
         AttackPlayer();
     }
