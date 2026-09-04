@@ -10,6 +10,8 @@
 #include "FPSHUDWidget.generated.h"
 
 
+class UButton;
+
 /**
  * 
  */
@@ -63,5 +65,8 @@ protected:
 	TObjectPtr<UImage> DamageOverlay;
 
 	FTimerHandle DamageEffectTimer;
+
+	UFUNCTION()
+	void OnRestartClicked();
 	
 };

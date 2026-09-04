@@ -110,6 +110,14 @@ void UFPSHUDWidget::NativeConstruct()
             &UFPSHUDWidget::OnContinueClicked
         );
     }
+
+    if (RestartButton)
+    {
+        RestartButton->OnClicked.AddDynamic(
+            this,
+            &UFPSHUDWidget::OnRestartClicked
+        );
+    }
 }
 
 void UFPSHUDWidget::ShowDamageEffect()
@@ -142,6 +150,19 @@ void UFPSHUDWidget::HideDamageEffect()
     if (DamageOverlay)
     {
         DamageOverlay->SetRenderOpacity(0.0f);
+    }
+}
+
+void UFPSHUDWidget::OnRestartClicked()
+{
+    UWorld* World = GetWorld();
+
+    if (World)
+    {
+        UGameplayStatics::OpenLevel(
+            World,
+            FName(*World->GetName())
+        );
     }
 }
 
