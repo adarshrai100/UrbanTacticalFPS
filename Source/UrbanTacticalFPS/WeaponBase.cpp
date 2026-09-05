@@ -86,6 +86,16 @@ void AWeaponBase::Fire()
         );
     }
 
+    if (FireSound)
+    {
+        UGameplayStatics::PlaySoundAtLocation(
+            this,
+            FireSound,
+            MuzzleLocation,
+            0.35f
+        );
+    }
+
     // First trace from camera to determine aim point
     FVector CameraStart = CameraLocation;
     FVector CameraEnd = CameraStart + (CameraRotation.Vector() * Range);

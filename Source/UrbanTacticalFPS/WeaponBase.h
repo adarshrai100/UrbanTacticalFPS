@@ -10,6 +10,9 @@
 
 #include "WeaponBase.generated.h"
 
+
+class USoundBase;
+
 UCLASS()
 class URBANTACTICALFPS_API AWeaponBase : public AActor
 {
@@ -92,4 +95,7 @@ public:
 	bool bIsReloading = false;
 
 	FTimerHandle ReloadTimer;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Audio")
+	TObjectPtr<USoundBase> FireSound;
 };
