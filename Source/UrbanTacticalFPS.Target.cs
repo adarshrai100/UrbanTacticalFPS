@@ -8,8 +8,8 @@ public class UrbanTacticalFPSTarget : TargetRules
 	public UrbanTacticalFPSTarget(TargetInfo Target) : base(Target)
 	{
 		Type = TargetType.Game;
-		DefaultBuildSettings = BuildSettingsVersion.V5;
-		IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_4;
-		ExtraModuleNames.Add("UrbanTacticalFPS");
+        DefaultBuildSettings = BuildSettingsVersion.V6;
+        IncludeOrderVersion = EngineIncludeOrderVersion.Unreal5_7;
+        ExtraModuleNames.Add("UrbanTacticalFPS");
 	}
 }
