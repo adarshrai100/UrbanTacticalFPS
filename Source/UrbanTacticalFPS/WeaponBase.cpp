@@ -153,7 +153,7 @@ void AWeaponBase::Fire()
                 UDamageType::StaticClass()
             );
         }
-
+/*
         DrawDebugSphere(
             GetWorld(),
             Hit.Location,
@@ -162,9 +162,31 @@ void AWeaponBase::Fire()
             FColor::Red,
             false,
             2.f
-        );
-    }
+        );*/
 
+        if (BulletImpactEffect)
+        {
+            FRotator ImpactRotation = Hit.ImpactNormal.Rotation();
+
+            UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+                GetWorld(),
+                BulletImpactEffect,
+                Hit.ImpactPoint,
+                ImpactRotation
+            );
+        }
+
+        if (BulletImpactSound)
+        {
+            UGameplayStatics::PlaySoundAtLocation(
+                this,
+                BulletImpactSound,
+                Hit.ImpactPoint,
+                BulletImpactSoundVolume
+            );
+        }
+    }
+    /*
     DrawDebugLine(
         GetWorld(),
         TraceStart,
@@ -174,7 +196,7 @@ void AWeaponBase::Fire()
         10.f,
         0,
         3.f
-    );
+    );*/
 
     APlayerOperator* Player = Cast<APlayerOperator>(GetOwner());
 

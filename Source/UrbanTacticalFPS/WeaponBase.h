@@ -67,6 +67,16 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 	UNiagaraSystem* MuzzleFlash;
 
+	// Bullet Impact
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects|Impact")
+	UNiagaraSystem* BulletImpactEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects|Impact")
+	TObjectPtr<USoundBase> BulletImpactSound;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects|Impact")
+	float BulletImpactSoundVolume = 0.5f;
+
 	// Recoil
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Recoil")
 	float VerticalRecoil = 2.0f;

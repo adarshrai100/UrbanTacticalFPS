@@ -39,7 +39,7 @@ public:
     float AttackStartRange = 250.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
-    float AttackDamage = 20.f;
+    float AttackDamage = 2.f;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
     float AttackInterval = 1.0f;
