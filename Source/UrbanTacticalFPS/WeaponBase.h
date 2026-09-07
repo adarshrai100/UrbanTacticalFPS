@@ -7,6 +7,7 @@
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "NiagaraSystem.h"
+#include "PhysicalMaterials/PhysicalMaterial.h"
 
 #include "WeaponBase.generated.h"
 
@@ -76,6 +77,15 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects|Impact")
 	float BulletImpactSoundVolume = 0.5f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects|Impact")
+	UNiagaraSystem* ConcreteImpactEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects|Impact")
+	UNiagaraSystem* MetalImpactEffect;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects|Impact")
+	UNiagaraSystem* WoodImpactEffect;
 
 	// Recoil
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Recoil")

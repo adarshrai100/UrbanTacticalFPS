@@ -128,11 +128,15 @@ void AWeaponBase::Fire()
 
     FHitResult Hit;
 
+    FCollisionQueryParams QueryParams;
+    QueryParams.bReturnPhysicalMaterial = true;
+
     bool bHit = GetWorld()->LineTraceSingleByChannel(
         Hit,
         TraceStart,
         TraceEnd,
-        ECC_Visibility
+        ECC_Visibility,
+        QueryParams
     );
     UE_LOG(LogTemp, Warning, TEXT("Trace Hit: %s"),
         bHit ? TEXT("TRUE") : TEXT("FALSE"));
@@ -164,13 +168,40 @@ void AWeaponBase::Fire()
             2.f
         );*/
 
-        if (BulletImpactEffect)
+        UNiagaraSystem* SelectedImpactEffect = BulletImpactEffect;
+
+        if (Hit.PhysMaterial.IsValid())
+        {
+            EPhysicalSurface SurfaceType = UPhysicalMaterial::DetermineSurfaceType(
+                Hit.PhysMaterial.Get()
+            );
+
+            switch (SurfaceType)
+            {
+            case SurfaceType1:
+                SelectedImpactEffect = ConcreteImpactEffect;
+                break;
+
+            case SurfaceType2:
+                SelectedImpactEffect = MetalImpactEffect;
+                break;
+
+            case SurfaceType3:
+                SelectedImpactEffect = WoodImpactEffect;
+                break;
+
+            default:
+                break;
+            }
+        }
+
+        if (SelectedImpactEffect)
         {
             FRotator ImpactRotation = Hit.ImpactNormal.Rotation();
 
             UNiagaraFunctionLibrary::SpawnSystemAtLocation(
                 GetWorld(),
-                BulletImpactEffect,
+                SelectedImpactEffect,
                 Hit.ImpactPoint,
                 ImpactRotation
             );

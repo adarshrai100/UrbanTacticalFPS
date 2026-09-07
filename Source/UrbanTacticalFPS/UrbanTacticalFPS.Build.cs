@@ -18,7 +18,8 @@ public class UrbanTacticalFPS : ModuleRules
     "Slate",
     "SlateCore",
     "Niagara",
-    "AIModule"
+    "AIModule",
+    "PhysicsCore"
         });
     }
 }
