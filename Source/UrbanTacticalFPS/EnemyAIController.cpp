@@ -2,8 +2,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "EnemyBase.h"
 #include "GameFramework/Character.h"
-#include "Navigation/PathFollowingComponent.h"
 #include "NavigationSystem.h"
+#include "Navigation/PathFollowingComponent.h"
 
 void AEnemyAIController::BeginPlay()
 {
@@ -27,117 +27,74 @@ void AEnemyAIController::Tick(float DeltaTime)
         return;
     }
 
-    // --------------------------------------------------
-    // NAVIGATION DIAGNOSTIC
-    // --------------------------------------------------
-
-    UNavigationSystemV1* NavSystem =
-        UNavigationSystemV1::GetCurrent(GetWorld());
-
-    if (NavSystem)
-    {
-        FNavLocation EnemyNavLocation;
-        FNavLocation PlayerNavLocation;
-
-        FVector EnemyFeetLocation = Enemy->GetActorLocation();
-        EnemyFeetLocation.Z -= Enemy->GetSimpleCollisionHalfHeight();
-
-        FVector PlayerFeetLocation = PlayerCharacter->GetActorLocation();
-        PlayerFeetLocation.Z -= PlayerCharacter->GetSimpleCollisionHalfHeight();
-
-        const bool bEnemyOnNavMesh =
-            NavSystem->ProjectPointToNavigation(
-                EnemyFeetLocation,
-                EnemyNavLocation,
-                FVector(100.f, 100.f, 300.f)
-            );
-
-        const bool bPlayerOnNavMesh =
-            NavSystem->ProjectPointToNavigation(
-                PlayerFeetLocation,
-                PlayerNavLocation,
-                FVector(100.f, 100.f, 300.f)
-            );
-
-        UE_LOG(
-            LogTemp,
-            Warning,
-            TEXT("NAV CHECK | Enemy: %s | Player: %s"),
-            bEnemyOnNavMesh ? TEXT("YES") : TEXT("NO"),
-            bPlayerOnNavMesh ? TEXT("YES") : TEXT("NO")
-        );
-    }
-    else
-    {
-        UE_LOG(
-            LogTemp,
-            Error,
-            TEXT("NAV CHECK | Navigation System NOT FOUND")
-        );
-    }
-
-    // --------------------------------------------------
-    // DISTANCE DETECTION
-    // --------------------------------------------------
-
     const float Distance =
         FVector::Distance(
             Enemy->GetActorLocation(),
             PlayerCharacter->GetActorLocation()
         );
 
-    UE_LOG(
-        LogTemp,
-        Warning,
-        TEXT("ENEMY AI | Distance: %.0f | Detection: %.0f"),
-        Distance,
-        Enemy->DetectionRange
-    );
-
-    // --------------------------------------------------
-    // OUTSIDE DETECTION RANGE
-    // --------------------------------------------------
 
     if (Distance > Enemy->DetectionRange)
     {
         StopMovement();
-
         ClearFocus(EAIFocusPriority::Gameplay);
-
         Enemy->StopAttacking();
+        return;
+    }
+
+    UNavigationSystemV1* NavSystem =
+        UNavigationSystemV1::GetCurrent(GetWorld());
+
+    if (!NavSystem)
+    {
 
         return;
     }
 
-    // --------------------------------------------------
-    // PLAYER DETECTED — CHASE
-    // --------------------------------------------------
+    // Use the player's actual actor location.
+    // Large search extent handles capsule height / uneven floor levels.
+    const FVector PlayerLocation =
+        PlayerCharacter->GetActorLocation();
+
+    FNavLocation PlayerNavLocation;
+
+    const bool bPlayerOnNavMesh =
+        NavSystem->ProjectPointToNavigation(
+            PlayerLocation,
+            PlayerNavLocation,
+            FVector(500.f, 500.f, 1000.f)
+        );
+
+
+    if (!bPlayerOnNavMesh)
+    {
+        Enemy->StopAttacking();
+        return;
+    }
+
 
     if (Distance > Enemy->AttackRange)
     {
         SetFocus(PlayerCharacter);
 
         EPathFollowingRequestResult::Type MoveResult =
-            MoveToActor(
-                PlayerCharacter,
-                150.f
+            MoveToLocation(
+                PlayerNavLocation.Location,
+                150.f,
+                true,
+                true,
+                true,
+                true,
+                nullptr,
+                true
             );
 
-        UE_LOG(
-            LogTemp,
-            Warning,
-            TEXT("MOVE RESULT: %d"),
-            static_cast<int32>(MoveResult)
-        );
+
 
         Enemy->StopAttacking();
     }
     else
     {
-        // --------------------------------------------------
-        // PLAYER IN ATTACK RANGE
-        // --------------------------------------------------
-
         StopMovement();
 
         SetFocus(PlayerCharacter);
