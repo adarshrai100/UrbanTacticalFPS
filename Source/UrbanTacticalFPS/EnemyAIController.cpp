@@ -3,6 +3,7 @@
 #include "EnemyBase.h"
 #include "GameFramework/Character.h"
 #include "Navigation/PathFollowingComponent.h"
+#include "NavigationSystem.h"
 
 void AEnemyAIController::BeginPlay()
 {
@@ -26,36 +27,117 @@ void AEnemyAIController::Tick(float DeltaTime)
         return;
     }
 
+    // --------------------------------------------------
+    // NAVIGATION DIAGNOSTIC
+    // --------------------------------------------------
+
+    UNavigationSystemV1* NavSystem =
+        UNavigationSystemV1::GetCurrent(GetWorld());
+
+    if (NavSystem)
+    {
+        FNavLocation EnemyNavLocation;
+        FNavLocation PlayerNavLocation;
+
+        FVector EnemyFeetLocation = Enemy->GetActorLocation();
+        EnemyFeetLocation.Z -= Enemy->GetSimpleCollisionHalfHeight();
+
+        FVector PlayerFeetLocation = PlayerCharacter->GetActorLocation();
+        PlayerFeetLocation.Z -= PlayerCharacter->GetSimpleCollisionHalfHeight();
+
+        const bool bEnemyOnNavMesh =
+            NavSystem->ProjectPointToNavigation(
+                EnemyFeetLocation,
+                EnemyNavLocation,
+                FVector(100.f, 100.f, 300.f)
+            );
+
+        const bool bPlayerOnNavMesh =
+            NavSystem->ProjectPointToNavigation(
+                PlayerFeetLocation,
+                PlayerNavLocation,
+                FVector(100.f, 100.f, 300.f)
+            );
+
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT("NAV CHECK | Enemy: %s | Player: %s"),
+            bEnemyOnNavMesh ? TEXT("YES") : TEXT("NO"),
+            bPlayerOnNavMesh ? TEXT("YES") : TEXT("NO")
+        );
+    }
+    else
+    {
+        UE_LOG(
+            LogTemp,
+            Error,
+            TEXT("NAV CHECK | Navigation System NOT FOUND")
+        );
+    }
+
+    // --------------------------------------------------
+    // DISTANCE DETECTION
+    // --------------------------------------------------
+
     const float Distance =
         FVector::Distance(
             Enemy->GetActorLocation(),
             PlayerCharacter->GetActorLocation()
         );
 
-    if (Distance > Enemy->AttackRange)
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("ENEMY AI | Distance: %.0f | Detection: %.0f"),
+        Distance,
+        Enemy->DetectionRange
+    );
+
+    // --------------------------------------------------
+    // OUTSIDE DETECTION RANGE
+    // --------------------------------------------------
+
+    if (Distance > Enemy->DetectionRange)
     {
+        StopMovement();
+
         ClearFocus(EAIFocusPriority::Gameplay);
 
-        const EPathFollowingRequestResult::Type MoveResult =
+        Enemy->StopAttacking();
+
+        return;
+    }
+
+    // --------------------------------------------------
+    // PLAYER DETECTED — CHASE
+    // --------------------------------------------------
+
+    if (Distance > Enemy->AttackRange)
+    {
+        SetFocus(PlayerCharacter);
+
+        EPathFollowingRequestResult::Type MoveResult =
             MoveToActor(
                 PlayerCharacter,
-                50.f
+                150.f
             );
 
-        if (MoveResult == EPathFollowingRequestResult::Failed)
-        {
-            UE_LOG(
-                LogTemp,
-                Warning,
-                TEXT("ENEMY MOVE FAILED | Distance: %.1f"),
-                Distance
-            );
-        }
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT("MOVE RESULT: %d"),
+            static_cast<int32>(MoveResult)
+        );
 
         Enemy->StopAttacking();
     }
     else
     {
+        // --------------------------------------------------
+        // PLAYER IN ATTACK RANGE
+        // --------------------------------------------------
+
         StopMovement();
 
         SetFocus(PlayerCharacter);

@@ -90,7 +90,7 @@ void UFPSHUDWidget::OnContinueClicked()
 {
     UGameplayStatics::OpenLevel(
         this,
-        FName(TEXT("L_TacticalMission"))
+        FName(TEXT("MainLevel_01"))
     );
 }
 
