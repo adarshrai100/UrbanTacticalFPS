@@ -95,6 +95,13 @@ void APlayerOperator::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
         this,
         &APlayerOperator::EquipPistol
     );
+
+    PlayerInputComponent->BindAction(
+        "WeaponShotgun",
+        IE_Pressed,
+        this,
+        &APlayerOperator::EquipShotgun
+    );
 }
 
 void APlayerOperator::BeginPlay()
@@ -135,6 +142,24 @@ void APlayerOperator::BeginPlay()
                 );
 
                 PistolWeapon->SetActorHiddenInGame(true);
+            }
+        }
+
+        if (ShotgunClass)
+        {
+            ShotgunWeapon =
+                GetWorld()->SpawnActor<AWeaponBase>(ShotgunClass);
+
+            if (ShotgunWeapon)
+            {
+                ShotgunWeapon->SetOwner(this);
+
+                ShotgunWeapon->AttachToComponent(
+                    WeaponPivot,
+                    FAttachmentTransformRules::SnapToTargetNotIncludingScale
+                );
+
+                ShotgunWeapon->SetActorHiddenInGame(true);
             }
         }
     }
@@ -612,4 +637,12 @@ void APlayerOperator::SwitchWeapon(AWeaponBase* NewWeapon)
     }
 
     UpdateAmmoUI();
+}
+
+void APlayerOperator::EquipShotgun()
+{
+    if (ShotgunWeapon)
+    {
+        SwitchWeapon(ShotgunWeapon);
+    }
 }

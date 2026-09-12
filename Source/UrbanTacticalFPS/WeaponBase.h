@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
@@ -11,20 +9,20 @@
 
 #include "WeaponBase.generated.h"
 
-
 class USoundBase;
 
 UCLASS()
 class URBANTACTICALFPS_API AWeaponBase : public AActor
 {
 	GENERATED_BODY()
-	
-public:	
-	// Sets default values for this actor's properties
+
+public:
 	AWeaponBase();
+
 	void Fire();
 	void StartFire();
 	void StopFire();
+
 	FTimerHandle FireTimer;
 
 	float GetVerticalRecoil() const { return VerticalRecoil; }
@@ -40,21 +38,26 @@ public:
 	int32 GetReserveAmmo() const;
 
 protected:
-	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-public:	
-	// Called every frame
+public:
 	virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY(EditAnywhere)
+	// =========================
+	// WEAPON
+	// =========================
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	float Damage = 20.f;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	float FireRate = 600.f;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Weapon")
 	float Range = 10000.f;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon")
+	bool bIsAutomatic = true;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	USceneComponent* WeaponRoot;
@@ -65,13 +68,13 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon")
 	USceneComponent* MuzzlePoint;
 
+	// =========================
+	// EFFECTS
+	// =========================
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 	UNiagaraSystem* MuzzleFlash;
 
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|ADS")
-	bool bCanADS = true;
-
-	// Bullet Impact
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects|Impact")
 	UNiagaraSystem* BulletImpactEffect;
 
@@ -90,7 +93,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects|Impact")
 	UNiagaraSystem* WoodImpactEffect;
 
-	// Recoil
+	// =========================
+	// RECOIL
+	// =========================
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Recoil")
 	float VerticalRecoil = 2.0f;
 
@@ -100,7 +106,10 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Recoil")
 	float RecoilRecoverySpeed = 10.0f;
 
-	// Ammo
+	// =========================
+	// AMMO
+	// =========================
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Ammo")
 	int32 MagazineSize = 30;
 
@@ -113,11 +122,21 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|Ammo")
 	float ReloadTime = 2.2f;
 
-	// Reload
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Weapon|Ammo")
 	bool bIsReloading = false;
 
 	FTimerHandle ReloadTimer;
+
+	// =========================
+	// ADS
+	// =========================
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|ADS")
+	bool bCanADS = true;
+
+	// =========================
+	// AUDIO
+	// =========================
 
 	UPROPERTY(EditDefaultsOnly, Category = "Audio")
 	TObjectPtr<USoundBase> FireSound;

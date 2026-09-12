@@ -78,6 +78,7 @@ protected:
     // Weapon switching
     void EquipRifle();
     void EquipPistol();
+    void EquipShotgun();
     void SwitchWeapon(AWeaponBase* NewWeapon);
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
@@ -92,6 +93,9 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "Weapon")
     TSubclassOf<AWeaponBase> PistolClass;
 
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    TSubclassOf<AWeaponBase> ShotgunClass;
+
     UPROPERTY()
     AWeaponBase* EquippedWeapon;
 
@@ -100,6 +104,9 @@ protected:
 
     UPROPERTY()
     AWeaponBase* PistolWeapon;
+
+    UPROPERTY()
+    AWeaponBase* ShotgunWeapon;
 
     UPROPERTY(EditDefaultsOnly, Category = "UI")
     TSubclassOf<UFPSHUDWidget> HUDClass;
