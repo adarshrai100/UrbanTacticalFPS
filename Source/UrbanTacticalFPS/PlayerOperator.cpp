@@ -81,6 +81,20 @@ void APlayerOperator::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
         this,
         &APlayerOperator::DebugTakeDamage
     );
+
+    PlayerInputComponent->BindAction(
+        "WeaponRifle",
+        IE_Pressed,
+        this,
+        &APlayerOperator::EquipRifle
+    );
+
+    PlayerInputComponent->BindAction(
+        "WeaponPistol",
+        IE_Pressed,
+        this,
+        &APlayerOperator::EquipPistol
+    );
 }
 
 void APlayerOperator::BeginPlay()
@@ -88,29 +102,39 @@ void APlayerOperator::BeginPlay()
     Super::BeginPlay();
     UE_LOG(LogTemp, Warning, TEXT("=== PlayerOperator Compiled Successfully ==="));
 
-    if (WeaponClass)
-    {
-        UE_LOG(LogTemp, Warning, TEXT("WeaponClass is VALID"));
-    }
-    else
-    {
-        UE_LOG(LogTemp, Error, TEXT("WeaponClass is NULL"));
-    }
-
     if (GetWorld())
     {
         if (WeaponClass)
         {
-            EquippedWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass);
+            RifleWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass);
 
-            if (EquippedWeapon)
+            if (RifleWeapon)
             {
-                EquippedWeapon->SetOwner(this);
+                RifleWeapon->SetOwner(this);
 
-                EquippedWeapon->AttachToComponent(
+                RifleWeapon->AttachToComponent(
                     WeaponPivot,
                     FAttachmentTransformRules::SnapToTargetNotIncludingScale
                 );
+
+                EquippedWeapon = RifleWeapon;
+            }
+        }
+
+        if (PistolClass)
+        {
+            PistolWeapon = GetWorld()->SpawnActor<AWeaponBase>(PistolClass);
+
+            if (PistolWeapon)
+            {
+                PistolWeapon->SetOwner(this);
+
+                PistolWeapon->AttachToComponent(
+                    WeaponPivot,
+                    FAttachmentTransformRules::SnapToTargetNotIncludingScale
+                );
+
+                PistolWeapon->SetActorHiddenInGame(true);
             }
         }
     }
@@ -334,6 +358,16 @@ void APlayerOperator::AddRecoil()
 
 void APlayerOperator::StartADS()
 {
+    if (!EquippedWeapon)
+    {
+        return;
+    }
+
+    if (!EquippedWeapon->bCanADS)
+    {
+        return;
+    }
+
     bIsADS = true;
 
     if (HUDWidget)
@@ -534,4 +568,48 @@ void APlayerOperator::SetMissionCompleteState()
         Warning,
         TEXT("MISSION COMPLETE - PLAYER CONTROL LOCKED")
     );
+}
+
+void APlayerOperator::EquipRifle()
+{
+    if (RifleWeapon)
+    {
+        SwitchWeapon(RifleWeapon);
+    }
+}
+
+void APlayerOperator::EquipPistol()
+{
+    if (PistolWeapon)
+    {
+        SwitchWeapon(PistolWeapon);
+    }
+}
+
+void APlayerOperator::SwitchWeapon(AWeaponBase* NewWeapon)
+{
+    if (!NewWeapon || NewWeapon == EquippedWeapon)
+    {
+        return;
+    }
+
+    if (EquippedWeapon)
+    {
+        EquippedWeapon->StopFire();
+        EquippedWeapon->SetActorHiddenInGame(true);
+    }
+
+    EquippedWeapon = NewWeapon;
+
+    EquippedWeapon->SetActorHiddenInGame(false);
+
+    // Reset ADS when switching
+    bIsADS = false;
+
+    if (HUDWidget)
+    {
+        HUDWidget->ShowCrosshair();
+    }
+
+    UpdateAmmoUI();
 }

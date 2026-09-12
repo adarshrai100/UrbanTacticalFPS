@@ -18,11 +18,11 @@ class URBANTACTICALFPS_API APlayerOperator : public ACharacter
 
 public:
     APlayerOperator();
+
     void AddRecoil();
     void ReloadWeapon();
     void UpdateAmmoUI();
     void SetMissionCompleteState();
-
 
     AWeaponBase* GetEquippedWeapon() const;
     UFPSHUDWidget* GetHUDWidget() const;
@@ -36,7 +36,10 @@ public:
 
 protected:
 
-    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+    virtual void SetupPlayerInputComponent(
+        class UInputComponent* PlayerInputComponent
+    ) override;
+
     virtual void BeginPlay() override;
     virtual void Tick(float DeltaTime) override;
 
@@ -61,16 +64,21 @@ protected:
     void LeanLeft();
     void LeanRight();
     void StopLean();
+
     void StartFire();
     void StopFire();
+
     void StartADS();
     void StopADS();
+
+
     void DebugTakeDamage();
     void Die();
 
-
-
-
+    // Weapon switching
+    void EquipRifle();
+    void EquipPistol();
+    void SwitchWeapon(AWeaponBase* NewWeapon);
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Camera")
     UCameraComponent* FirstPersonCamera;
@@ -81,8 +89,17 @@ protected:
     UPROPERTY(EditDefaultsOnly, Category = "Weapon")
     TSubclassOf<AWeaponBase> WeaponClass;
 
+    UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+    TSubclassOf<AWeaponBase> PistolClass;
+
     UPROPERTY()
     AWeaponBase* EquippedWeapon;
+
+    UPROPERTY()
+    AWeaponBase* RifleWeapon;
+
+    UPROPERTY()
+    AWeaponBase* PistolWeapon;
 
     UPROPERTY(EditDefaultsOnly, Category = "UI")
     TSubclassOf<UFPSHUDWidget> HUDClass;
@@ -90,12 +107,10 @@ protected:
     UPROPERTY()
     TObjectPtr<UFPSHUDWidget> HUDWidget;
 
-
-
-
     float CurrentRecoilOffset = 0.f;
     float TargetRecoilOffset = 0.f;
-    float PreviousRecoilOffset = 0.f;   
+    float PreviousRecoilOffset = 0.f;
+
     float CurrentYawOffset = 0.f;
     float TargetYawOffset = 0.f;
     float PreviousYawOffset = 0.f;
@@ -134,5 +149,4 @@ protected:
     bool bIsDead = false;
 
     virtual void PossessedBy(AController* NewController) override;
-
 };

@@ -68,6 +68,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects")
 	UNiagaraSystem* MuzzleFlash;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Weapon|ADS")
+	bool bCanADS = true;
+
 	// Bullet Impact
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Effects|Impact")
 	UNiagaraSystem* BulletImpactEffect;
