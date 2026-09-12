@@ -8,7 +8,6 @@
 #include "TimerManager.h"
 #include "NiagaraFunctionLibrary.h"
 #include "NiagaraSystem.h"
-#include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 
 AEnemyBase::AEnemyBase()
@@ -35,7 +34,9 @@ void AEnemyBase::BeginPlay()
     Super::BeginPlay();
 
     CurrentHealth = MaxHealth;
+
     EnemyMuzzlePoint = FindComponentByClass<USceneComponent>();
+
     TArray<USceneComponent*> SceneComponents;
     GetComponents<USceneComponent>(SceneComponents);
 
@@ -91,6 +92,7 @@ float AEnemyBase::TakeDamage(
     {
         return 0.0f;
     }
+
     CurrentHealth -= DamageAmount;
 
     UE_LOG(
@@ -102,9 +104,11 @@ float AEnemyBase::TakeDamage(
 
     if (HitReactionMontage)
     {
-        UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+        UAnimInstance* AnimInstance =
+            GetMesh()->GetAnimInstance();
 
-        const float CurrentTime = GetWorld()->GetTimeSeconds();
+        const float CurrentTime =
+            GetWorld()->GetTimeSeconds();
 
         if (AnimInstance &&
             !AnimInstance->Montage_IsPlaying(HitReactionMontage) &&
@@ -140,11 +144,14 @@ void AEnemyBase::Die()
         GameMode->EnemyDied();
     }
 
-    UE_LOG(LogTemp, Warning, TEXT("ENEMY DEAD"));
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("ENEMY DEAD")
+    );
 
     StopAttacking();
 
-    // Stop any currently playing combat animations
     if (FireMontage)
     {
         StopAnimMontage(FireMontage);
@@ -155,7 +162,6 @@ void AEnemyBase::Die()
         StopAnimMontage(HitReactionMontage);
     }
 
-    // Play death animation
     if (DeathMontage)
     {
         PlayAnimMontage(DeathMontage);
@@ -184,7 +190,10 @@ void AEnemyBase::AttackPlayer()
     );
 
     AActor* PlayerActor =
-        UGameplayStatics::GetPlayerCharacter(GetWorld(), 0);
+        UGameplayStatics::GetPlayerCharacter(
+            GetWorld(),
+            0
+        );
 
     if (!PlayerActor)
     {
@@ -192,10 +201,12 @@ void AEnemyBase::AttackPlayer()
     }
 
     FVector StartLocation =
-        GetActorLocation() + FVector(0.f, 0.f, 60.f);
+        GetActorLocation() +
+        FVector(0.f, 0.f, 60.f);
 
     FVector EndLocation =
-        PlayerActor->GetActorLocation() + FVector(0.f, 0.f, 50.f);
+        PlayerActor->GetActorLocation() +
+        FVector(0.f, 0.f, 50.f);
 
     FHitResult HitResult;
 
@@ -247,7 +258,10 @@ void AEnemyBase::AttackPlayer()
 
         if (FireMontage)
         {
-            PlayAnimMontage(FireMontage, 0.1f);;
+            PlayAnimMontage(
+                FireMontage,
+                0.1f
+            );
         }
 
         if (EnemyFireSound)
@@ -277,12 +291,29 @@ void AEnemyBase::AttackPlayer()
 
 void AEnemyBase::StartAttacking()
 {
+    if (bIsDead)
+    {
+        return;
+    }
+
     if (!bIsAttacking)
     {
         bIsAttacking = true;
 
-        UE_LOG(LogTemp, Warning, TEXT("ENEMY START ATTACKING"));
-        AttackPlayer();
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT("ENEMY START ATTACKING")
+        );
+
+        // Delay only the first shot.
+        GetWorldTimerManager().SetTimer(
+            AttackStartupTimerHandle,
+            this,
+            &AEnemyBase::AttackPlayer,
+            AttackStartupDelay,
+            false
+        );
     }
 
     if (!GetWorldTimerManager().IsTimerActive(AttackTimerHandle))
@@ -299,12 +330,14 @@ void AEnemyBase::StartAttacking()
 
 void AEnemyBase::StopAttacking()
 {
-    //UE_LOG(LogTemp, Warning, TEXT("ENEMY STOP ATTACKING"));
-
     bIsAttacking = false;
 
     GetWorldTimerManager().ClearTimer(
         AttackTimerHandle
+    );
+
+    GetWorldTimerManager().ClearTimer(
+        AttackStartupTimerHandle
     );
 
     if (FireMontage)

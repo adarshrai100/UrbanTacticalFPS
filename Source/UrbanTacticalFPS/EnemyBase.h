@@ -44,6 +44,9 @@ public:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
     float AttackInterval = 1.0f;
 
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
+    float AttackStartupDelay = 0.25f;
+
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
     bool bIsAttacking = false;
 
@@ -77,14 +80,14 @@ public:
     FTimerHandle AttackTimerHandle;
     FTimerHandle DeathTimerHandle;
     FTimerHandle MuzzleFlashTimer;
+    FTimerHandle AttackStartupTimerHandle;
+
     void StartAttacking();
     void StopAttacking();
     void AttackPlayer();
 
     void ShowMuzzleFlash();
     void HideMuzzleFlash();
-
-
 
     UPROPERTY(BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
     TObjectPtr<USceneComponent> EnemyMuzzlePoint;
