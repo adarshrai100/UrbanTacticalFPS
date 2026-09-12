@@ -101,7 +101,7 @@ void AWeaponBase::Fire()
     }
 
     // =========================
-    // CAMERA TRACE
+    // CAMERA AIM
     // =========================
 
     FVector CameraStart = CameraLocation;
@@ -130,117 +130,230 @@ void AWeaponBase::Fire()
     }
 
     // =========================
-    // MUZZLE TRACE
+    // SHOTGUN
     // =========================
 
-    FVector ShotDirection =
-        (TargetPoint - MuzzleLocation).GetSafeNormal();
-
-    FVector TraceStart = MuzzleLocation;
-    FVector TraceEnd =
-        TraceStart + (ShotDirection * Range);
-
-    FHitResult Hit;
-
-    FCollisionQueryParams QueryParams;
-    QueryParams.bReturnPhysicalMaterial = true;
-
-    bool bHit =
-        GetWorld()->LineTraceSingleByChannel(
-            Hit,
-            TraceStart,
-            TraceEnd,
-            ECC_Visibility,
-            QueryParams
-        );
-
-    UE_LOG(
-        LogTemp,
-        Warning,
-        TEXT("Trace Hit: %s"),
-        bHit ? TEXT("TRUE") : TEXT("FALSE")
-    );
-
-    if (bHit)
+    if (bIsShotgun)
     {
-        AActor* HitActor = Hit.GetActor();
+        FVector BaseDirection =
+            (TargetPoint - MuzzleLocation).GetSafeNormal();
 
-        if (HitActor)
+        for (int32 PelletIndex = 0; PelletIndex < PelletCount; PelletIndex++)
         {
-            UE_LOG(
-                LogTemp,
-                Warning,
-                TEXT("Hit Actor: %s"),
-                *HitActor->GetName()
-            );
+            FRotator PelletRotation =
+                BaseDirection.Rotation();
 
-            UGameplayStatics::ApplyDamage(
-                HitActor,
-                Damage,
-                Controller,
-                this,
-                UDamageType::StaticClass()
-            );
-        }
+            PelletRotation.Yaw +=
+                FMath::FRandRange(-SpreadAngle, SpreadAngle);
 
-        // =========================
-        // IMPACT EFFECT
-        // =========================
+            PelletRotation.Pitch +=
+                FMath::FRandRange(-SpreadAngle, SpreadAngle);
 
-        UNiagaraSystem* SelectedImpactEffect =
-            BulletImpactEffect;
+            FVector PelletDirection =
+                PelletRotation.Vector();
 
-        if (Hit.PhysMaterial.IsValid())
-        {
-            EPhysicalSurface SurfaceType =
-                UPhysicalMaterial::DetermineSurfaceType(
-                    Hit.PhysMaterial.Get()
+            FVector TraceStart = MuzzleLocation;
+            FVector TraceEnd =
+                TraceStart + (PelletDirection * Range);
+
+            FHitResult Hit;
+
+            FCollisionQueryParams QueryParams;
+            QueryParams.bReturnPhysicalMaterial = true;
+
+            bool bHit =
+                GetWorld()->LineTraceSingleByChannel(
+                    Hit,
+                    TraceStart,
+                    TraceEnd,
+                    ECC_Visibility,
+                    QueryParams
                 );
 
-            switch (SurfaceType)
+            if (bHit)
             {
-            case SurfaceType1:
-                SelectedImpactEffect = ConcreteImpactEffect;
-                break;
+                AActor* HitActor = Hit.GetActor();
 
-            case SurfaceType2:
-                SelectedImpactEffect = MetalImpactEffect;
-                break;
+                if (HitActor)
+                {
+                    UGameplayStatics::ApplyDamage(
+                        HitActor,
+                        Damage,
+                        Controller,
+                        this,
+                        UDamageType::StaticClass()
+                    );
+                }
 
-            case SurfaceType3:
-                SelectedImpactEffect = WoodImpactEffect;
-                break;
+                // =========================
+                // PELLET IMPACT EFFECT
+                // =========================
 
-            default:
-                break;
+                UNiagaraSystem* SelectedImpactEffect =
+                    BulletImpactEffect;
+
+                if (Hit.PhysMaterial.IsValid())
+                {
+                    EPhysicalSurface SurfaceType =
+                        UPhysicalMaterial::DetermineSurfaceType(
+                            Hit.PhysMaterial.Get()
+                        );
+
+                    switch (SurfaceType)
+                    {
+                    case SurfaceType1:
+                        SelectedImpactEffect = ConcreteImpactEffect;
+                        break;
+
+                    case SurfaceType2:
+                        SelectedImpactEffect = MetalImpactEffect;
+                        break;
+
+                    case SurfaceType3:
+                        SelectedImpactEffect = WoodImpactEffect;
+                        break;
+
+                    default:
+                        break;
+                    }
+                }
+
+                if (SelectedImpactEffect)
+                {
+                    FRotator ImpactRotation =
+                        Hit.ImpactNormal.Rotation();
+
+                    UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+                        GetWorld(),
+                        SelectedImpactEffect,
+                        Hit.ImpactPoint,
+                        ImpactRotation
+                    );
+                }
+
+                if (BulletImpactSound)
+                {
+                    UGameplayStatics::PlaySoundAtLocation(
+                        this,
+                        BulletImpactSound,
+                        Hit.ImpactPoint,
+                        BulletImpactSoundVolume
+                    );
+                }
             }
         }
-
-        if (SelectedImpactEffect)
-        {
-            FRotator ImpactRotation =
-                Hit.ImpactNormal.Rotation();
-
-            UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-                GetWorld(),
-                SelectedImpactEffect,
-                Hit.ImpactPoint,
-                ImpactRotation
-            );
-        }
-
+    }
+    else
+    {
         // =========================
-        // IMPACT SOUND
+        // RIFLE / PISTOL
         // =========================
 
-        if (BulletImpactSound)
-        {
-            UGameplayStatics::PlaySoundAtLocation(
-                this,
-                BulletImpactSound,
-                Hit.ImpactPoint,
-                BulletImpactSoundVolume
+        FVector ShotDirection =
+            (TargetPoint - MuzzleLocation).GetSafeNormal();
+
+        FVector TraceStart = MuzzleLocation;
+        FVector TraceEnd =
+            TraceStart + (ShotDirection * Range);
+
+        FHitResult Hit;
+
+        FCollisionQueryParams QueryParams;
+        QueryParams.bReturnPhysicalMaterial = true;
+
+        bool bHit =
+            GetWorld()->LineTraceSingleByChannel(
+                Hit,
+                TraceStart,
+                TraceEnd,
+                ECC_Visibility,
+                QueryParams
             );
+
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT("Trace Hit: %s"),
+            bHit ? TEXT("TRUE") : TEXT("FALSE")
+        );
+
+        if (bHit)
+        {
+            AActor* HitActor = Hit.GetActor();
+
+            if (HitActor)
+            {
+                UE_LOG(
+                    LogTemp,
+                    Warning,
+                    TEXT("Hit Actor: %s"),
+                    *HitActor->GetName()
+                );
+
+                UGameplayStatics::ApplyDamage(
+                    HitActor,
+                    Damage,
+                    Controller,
+                    this,
+                    UDamageType::StaticClass()
+                );
+            }
+
+            // =========================
+            // IMPACT EFFECT
+            // =========================
+
+            UNiagaraSystem* SelectedImpactEffect =
+                BulletImpactEffect;
+
+            if (Hit.PhysMaterial.IsValid())
+            {
+                EPhysicalSurface SurfaceType =
+                    UPhysicalMaterial::DetermineSurfaceType(
+                        Hit.PhysMaterial.Get()
+                    );
+
+                switch (SurfaceType)
+                {
+                case SurfaceType1:
+                    SelectedImpactEffect = ConcreteImpactEffect;
+                    break;
+
+                case SurfaceType2:
+                    SelectedImpactEffect = MetalImpactEffect;
+                    break;
+
+                case SurfaceType3:
+                    SelectedImpactEffect = WoodImpactEffect;
+                    break;
+
+                default:
+                    break;
+                }
+            }
+
+            if (SelectedImpactEffect)
+            {
+                FRotator ImpactRotation =
+                    Hit.ImpactNormal.Rotation();
+
+                UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+                    GetWorld(),
+                    SelectedImpactEffect,
+                    Hit.ImpactPoint,
+                    ImpactRotation
+                );
+            }
+
+            if (BulletImpactSound)
+            {
+                UGameplayStatics::PlaySoundAtLocation(
+                    this,
+                    BulletImpactSound,
+                    Hit.ImpactPoint,
+                    BulletImpactSoundVolume
+                );
+            }
         }
     }
 
@@ -257,7 +370,7 @@ void AWeaponBase::Fire()
     }
 
     // =========================
-    // AMMO
+    // ONE AMMO PER SHOT
     // =========================
 
     CurrentAmmo--;
@@ -297,7 +410,6 @@ void AWeaponBase::StartFire()
     if (!bIsAutomatic)
     {
         Fire();
-
         return;
     }
 
