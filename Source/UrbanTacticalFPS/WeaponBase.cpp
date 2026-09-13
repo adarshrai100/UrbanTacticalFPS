@@ -153,6 +153,7 @@ void AWeaponBase::Fire()
                 PelletRotation.Vector();
 
             FVector TraceStart = MuzzleLocation;
+
             FVector TraceEnd =
                 TraceStart + (PelletDirection * Range);
 
@@ -184,10 +185,6 @@ void AWeaponBase::Fire()
                         UDamageType::StaticClass()
                     );
                 }
-
-                // =========================
-                // PELLET IMPACT EFFECT
-                // =========================
 
                 UNiagaraSystem* SelectedImpactEffect =
                     BulletImpactEffect;
@@ -253,6 +250,7 @@ void AWeaponBase::Fire()
             (TargetPoint - MuzzleLocation).GetSafeNormal();
 
         FVector TraceStart = MuzzleLocation;
+
         FVector TraceEnd =
             TraceStart + (ShotDirection * Range);
 
@@ -298,10 +296,6 @@ void AWeaponBase::Fire()
                     UDamageType::StaticClass()
                 );
             }
-
-            // =========================
-            // IMPACT EFFECT
-            // =========================
 
             UNiagaraSystem* SelectedImpactEffect =
                 BulletImpactEffect;
@@ -474,6 +468,24 @@ void AWeaponBase::Reload()
         TEXT("Reloading...")
     );
 
+    if (bShellByShellReload)
+    {
+        // One shell will be loaded every ReloadTime seconds.
+        GetWorldTimerManager().SetTimer(
+            ReloadTimer,
+            this,
+            &AWeaponBase::FinishReload,
+            ShellInsertTime,
+            true
+        );
+
+        return;
+    }
+
+    // =========================
+    // MAGAZINE RELOAD
+    // =========================
+
     GetWorldTimerManager().SetTimer(
         ReloadTimer,
         this,
@@ -485,6 +497,72 @@ void AWeaponBase::Reload()
 
 void AWeaponBase::FinishReload()
 {
+    if (bShellByShellReload)
+    {
+        if (CurrentAmmo >= MagazineSize ||
+            ReserveAmmo <= 0)
+        {
+            GetWorldTimerManager().ClearTimer(ReloadTimer);
+
+            bIsReloading = false;
+
+            if (APlayerOperator* Player =
+                Cast<APlayerOperator>(GetOwner()))
+            {
+                Player->UpdateAmmoUI();
+            }
+
+            UE_LOG(
+                LogTemp,
+                Warning,
+                TEXT("Shotgun Reload Complete: %d / %d"),
+                CurrentAmmo,
+                ReserveAmmo
+            );
+
+            return;
+        }
+
+        CurrentAmmo++;
+        ReserveAmmo--;
+
+        if (APlayerOperator* Player =
+            Cast<APlayerOperator>(GetOwner()))
+        {
+            Player->UpdateAmmoUI();
+        }
+
+        UE_LOG(
+            LogTemp,
+            Warning,
+            TEXT("Shell Loaded: %d / %d"),
+            CurrentAmmo,
+            ReserveAmmo
+        );
+
+        if (CurrentAmmo >= MagazineSize ||
+            ReserveAmmo <= 0)
+        {
+            GetWorldTimerManager().ClearTimer(ReloadTimer);
+
+            bIsReloading = false;
+
+            UE_LOG(
+                LogTemp,
+                Warning,
+                TEXT("Shotgun Reload Complete: %d / %d"),
+                CurrentAmmo,
+                ReserveAmmo
+            );
+        }
+
+        return;
+    }
+
+    // =========================
+    // NORMAL MAGAZINE RELOAD
+    // =========================
+
     int32 AmmoNeeded =
         MagazineSize - CurrentAmmo;
 
