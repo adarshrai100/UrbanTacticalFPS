@@ -1,6 +1,5 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-
 #include "PlayerOperator.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -18,55 +17,183 @@ APlayerOperator::APlayerOperator()
 {
     PrimaryActorTick.bCanEverTick = true;
 
-    FirstPersonCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FirstPersonCamera"));
-    FirstPersonCamera->SetupAttachment(GetCapsuleComponent());
-    FirstPersonCamera->SetRelativeLocation(FVector(0.f, 0.f, 60.f));
+    FirstPersonCamera =
+        CreateDefaultSubobject<UCameraComponent>(
+            TEXT("FirstPersonCamera")
+        );
+
+    FirstPersonCamera->SetupAttachment(
+        GetCapsuleComponent()
+    );
+
+    FirstPersonCamera->SetRelativeLocation(
+        FVector(0.f, 0.f, 60.f)
+    );
+
     FirstPersonCamera->bUsePawnControlRotation = true;
 
-    WeaponPivot = CreateDefaultSubobject<USceneComponent>(TEXT("WeaponPivot"));
-    WeaponPivot->SetupAttachment(FirstPersonCamera);
-    WeaponPivot->SetRelativeLocation(FVector(40.f, 20.f, -35.f));
-    GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-    GetCharacterMovement()->NavAgentProps.bCanCrouch = true;
-    GetCharacterMovement()->BrakingDecelerationWalking = 2048.f;
-    GetCharacterMovement()->GroundFriction = 8.f;
+    WeaponPivot =
+        CreateDefaultSubobject<USceneComponent>(
+            TEXT("WeaponPivot")
+        );
+
+    WeaponPivot->SetupAttachment(
+        FirstPersonCamera
+    );
+
+    WeaponPivot->SetRelativeLocation(
+        HipFireLocation
+    );
+
+    CurrentWeaponBaseLocation =
+        HipFireLocation;
+
+    GetCharacterMovement()->MaxWalkSpeed =
+        WalkSpeed;
+
+    GetCharacterMovement()->NavAgentProps.bCanCrouch =
+        true;
+
+    GetCharacterMovement()->BrakingDecelerationWalking =
+        2048.f;
+
+    GetCharacterMovement()->GroundFriction =
+        8.f;
+
     bUseControllerRotationYaw = true;
-    GetCharacterMovement()->bOrientRotationToMovement = false;
+
+    GetCharacterMovement()->bOrientRotationToMovement =
+        false;
 
     GetMesh()->SetOwnerNoSee(true);
 
-    UE_LOG(LogTemp, Warning, TEXT("PlayerOperator Active"));
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("PlayerOperator Active")
+    );
 }
 
 
-// Called to bind functionality to input
-void APlayerOperator::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+// =========================
+// INPUT
+// =========================
+
+void APlayerOperator::SetupPlayerInputComponent(
+    UInputComponent* PlayerInputComponent
+)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+    Super::SetupPlayerInputComponent(
+        PlayerInputComponent
+    );
 
-	PlayerInputComponent->BindAxis("MoveForward", this, &APlayerOperator::MoveForward);
-	PlayerInputComponent->BindAxis("MoveRight", this, &APlayerOperator::MoveRight);
+    PlayerInputComponent->BindAxis(
+        "MoveForward",
+        this,
+        &APlayerOperator::MoveForward
+    );
 
-	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
-	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+    PlayerInputComponent->BindAxis(
+        "MoveRight",
+        this,
+        &APlayerOperator::MoveRight
+    );
 
-    PlayerInputComponent->BindAction("Sprint", IE_Pressed, this, &APlayerOperator::StartSprint);
-    PlayerInputComponent->BindAction("Sprint", IE_Released, this, &APlayerOperator::StopSprint);
+    PlayerInputComponent->BindAxis(
+        "Turn",
+        this,
+        &APawn::AddControllerYawInput
+    );
 
-    PlayerInputComponent->BindAction("Crouch", IE_Pressed, this, &APlayerOperator::StartCrouch);
-    PlayerInputComponent->BindAction("Crouch", IE_Released, this, &APlayerOperator::StopCrouch);
+    PlayerInputComponent->BindAxis(
+        "LookUp",
+        this,
+        &APawn::AddControllerPitchInput
+    );
 
-    PlayerInputComponent->BindAction("LeanLeft", IE_Pressed, this, &APlayerOperator::LeanLeft);
-    PlayerInputComponent->BindAction("LeanLeft", IE_Released, this, &APlayerOperator::StopLean);
+    PlayerInputComponent->BindAction(
+        "Sprint",
+        IE_Pressed,
+        this,
+        &APlayerOperator::StartSprint
+    );
 
-    PlayerInputComponent->BindAction("LeanRight", IE_Pressed, this, &APlayerOperator::LeanRight);
-    PlayerInputComponent->BindAction("LeanRight", IE_Released, this, &APlayerOperator::StopLean);
+    PlayerInputComponent->BindAction(
+        "Sprint",
+        IE_Released,
+        this,
+        &APlayerOperator::StopSprint
+    );
 
-    PlayerInputComponent->BindAction("Fire", IE_Pressed, this, &APlayerOperator::StartFire);
-    PlayerInputComponent->BindAction("Fire", IE_Released, this, &APlayerOperator::StopFire);
+    PlayerInputComponent->BindAction(
+        "Crouch",
+        IE_Pressed,
+        this,
+        &APlayerOperator::StartCrouch
+    );
 
-    PlayerInputComponent->BindAction("ADS", IE_Pressed, this, &APlayerOperator::StartADS);
-    PlayerInputComponent->BindAction("ADS", IE_Released, this, &APlayerOperator::StopADS);
+    PlayerInputComponent->BindAction(
+        "Crouch",
+        IE_Released,
+        this,
+        &APlayerOperator::StopCrouch
+    );
+
+    PlayerInputComponent->BindAction(
+        "LeanLeft",
+        IE_Pressed,
+        this,
+        &APlayerOperator::LeanLeft
+    );
+
+    PlayerInputComponent->BindAction(
+        "LeanLeft",
+        IE_Released,
+        this,
+        &APlayerOperator::StopLean
+    );
+
+    PlayerInputComponent->BindAction(
+        "LeanRight",
+        IE_Pressed,
+        this,
+        &APlayerOperator::LeanRight
+    );
+
+    PlayerInputComponent->BindAction(
+        "LeanRight",
+        IE_Released,
+        this,
+        &APlayerOperator::StopLean
+    );
+
+    PlayerInputComponent->BindAction(
+        "Fire",
+        IE_Pressed,
+        this,
+        &APlayerOperator::StartFire
+    );
+
+    PlayerInputComponent->BindAction(
+        "Fire",
+        IE_Released,
+        this,
+        &APlayerOperator::StopFire
+    );
+
+    PlayerInputComponent->BindAction(
+        "ADS",
+        IE_Pressed,
+        this,
+        &APlayerOperator::StartADS
+    );
+
+    PlayerInputComponent->BindAction(
+        "ADS",
+        IE_Released,
+        this,
+        &APlayerOperator::StopADS
+    );
 
     PlayerInputComponent->BindAction(
         "Reload",
@@ -104,16 +231,32 @@ void APlayerOperator::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
     );
 }
 
+
+// =========================
+// BEGIN PLAY
+// =========================
+
 void APlayerOperator::BeginPlay()
 {
     Super::BeginPlay();
-    UE_LOG(LogTemp, Warning, TEXT("=== PlayerOperator Compiled Successfully ==="));
+
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("=== PlayerOperator Compiled Successfully ===")
+    );
+
+    CurrentWeaponBaseLocation =
+        HipFireLocation;
 
     if (GetWorld())
     {
         if (WeaponClass)
         {
-            RifleWeapon = GetWorld()->SpawnActor<AWeaponBase>(WeaponClass);
+            RifleWeapon =
+                GetWorld()->SpawnActor<AWeaponBase>(
+                    WeaponClass
+                );
 
             if (RifleWeapon)
             {
@@ -124,13 +267,17 @@ void APlayerOperator::BeginPlay()
                     FAttachmentTransformRules::SnapToTargetNotIncludingScale
                 );
 
-                EquippedWeapon = RifleWeapon;
+                EquippedWeapon =
+                    RifleWeapon;
             }
         }
 
         if (PistolClass)
         {
-            PistolWeapon = GetWorld()->SpawnActor<AWeaponBase>(PistolClass);
+            PistolWeapon =
+                GetWorld()->SpawnActor<AWeaponBase>(
+                    PistolClass
+                );
 
             if (PistolWeapon)
             {
@@ -141,14 +288,18 @@ void APlayerOperator::BeginPlay()
                     FAttachmentTransformRules::SnapToTargetNotIncludingScale
                 );
 
-                PistolWeapon->SetActorHiddenInGame(true);
+                PistolWeapon->SetActorHiddenInGame(
+                    true
+                );
             }
         }
 
         if (ShotgunClass)
         {
             ShotgunWeapon =
-                GetWorld()->SpawnActor<AWeaponBase>(ShotgunClass);
+                GetWorld()->SpawnActor<AWeaponBase>(
+                    ShotgunClass
+                );
 
             if (ShotgunWeapon)
             {
@@ -159,19 +310,30 @@ void APlayerOperator::BeginPlay()
                     FAttachmentTransformRules::SnapToTargetNotIncludingScale
                 );
 
-                ShotgunWeapon->SetActorHiddenInGame(true);
+                ShotgunWeapon->SetActorHiddenInGame(
+                    true
+                );
             }
         }
     }
+
     if (HUDClass)
     {
-        HUDWidget = CreateWidget<UFPSHUDWidget>(GetWorld(), HUDClass, TEXT("HUD"));
+        HUDWidget =
+            CreateWidget<UFPSHUDWidget>(
+                GetWorld(),
+                HUDClass,
+                TEXT("HUD")
+            );
 
         if (HUDWidget)
         {
             HUDWidget->AddToViewport();
+
             HUDWidget->HideGameOver();
+
             UpdateAmmoUI();
+
             if (AUrbanTacticalFPSGameMode* GameMode =
                 GetWorld()->GetAuthGameMode<AUrbanTacticalFPSGameMode>())
             {
@@ -179,28 +341,60 @@ void APlayerOperator::BeginPlay()
             }
         }
     }
-    FirstPersonCamera->SetFieldOfView(HipFOV);
-    CurrentHealth = MaxHealth;
-    bIsDead = false;
 
-    if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+    FirstPersonCamera->SetFieldOfView(
+        HipFOV
+    );
+
+    CurrentHealth =
+        MaxHealth;
+
+    bIsDead =
+        false;
+
+    if (APlayerController* PlayerController =
+        Cast<APlayerController>(GetController()))
     {
-        PlayerController->bShowMouseCursor = false;
+        PlayerController->bShowMouseCursor =
+            false;
 
         FInputModeGameOnly InputMode;
-        PlayerController->SetInputMode(InputMode);
+
+        PlayerController->SetInputMode(
+            InputMode
+        );
     }
 }
+
+
+// =========================
+// MOVEMENT
+// =========================
 
 void APlayerOperator::MoveForward(float Value)
 {
     if (Controller && Value != 0.0f)
     {
-        const FRotator Rotation = Controller->GetControlRotation();
-        const FRotator YawRotation(0, Rotation.Yaw, 0);
+        const FRotator Rotation =
+            Controller->GetControlRotation();
 
-        const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-        AddMovementInput(Direction, Value);
+        const FRotator YawRotation(
+            0.f,
+            Rotation.Yaw,
+            0.f
+        );
+
+        const FVector Direction =
+            FRotationMatrix(
+                YawRotation
+            ).GetUnitAxis(
+                EAxis::X
+            );
+
+        AddMovementInput(
+            Direction,
+            Value
+        );
     }
 }
 
@@ -208,25 +402,62 @@ void APlayerOperator::MoveRight(float Value)
 {
     if (Controller && Value != 0.0f)
     {
-        const FRotator Rotation = Controller->GetControlRotation();
-        const FRotator YawRotation(0, Rotation.Yaw, 0);
+        const FRotator Rotation =
+            Controller->GetControlRotation();
 
-        const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-        AddMovementInput(Direction, Value);
+        const FRotator YawRotation(
+            0.f,
+            Rotation.Yaw,
+            0.f
+        );
+
+        const FVector Direction =
+            FRotationMatrix(
+                YawRotation
+            ).GetUnitAxis(
+                EAxis::Y
+            );
+
+        AddMovementInput(
+            Direction,
+            Value
+        );
     }
 }
 
+
+// =========================
+// SPRINT
+// =========================
+
 void APlayerOperator::StartSprint()
 {
-    GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
-    UE_LOG(LogTemp, Warning, TEXT("Sprint Started"));
+    GetCharacterMovement()->MaxWalkSpeed =
+        SprintSpeed;
+
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("Sprint Started")
+    );
 }
 
 void APlayerOperator::StopSprint()
 {
-    GetCharacterMovement()->MaxWalkSpeed = WalkSpeed;
-    UE_LOG(LogTemp, Warning, TEXT("Sprint Stopped"));
+    GetCharacterMovement()->MaxWalkSpeed =
+        WalkSpeed;
+
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("Sprint Stopped")
+    );
 }
+
+
+// =========================
+// CROUCH
+// =========================
 
 void APlayerOperator::StartCrouch()
 {
@@ -238,106 +469,505 @@ void APlayerOperator::StopCrouch()
     UnCrouch();
 }
 
+
+// =========================
+// LEAN
+// =========================
+
 void APlayerOperator::LeanLeft()
 {
-    TargetLean = -LeanOffset;
+    TargetLean =
+        -LeanOffset;
 }
 
 void APlayerOperator::LeanRight()
 {
-    TargetLean = LeanOffset;
+    TargetLean =
+        LeanOffset;
 }
 
 void APlayerOperator::StopLean()
 {
-    TargetLean = 0.f;
+    TargetLean =
+        0.f;
 }
+
+
+// =========================
+// TICK
+// =========================
 
 void APlayerOperator::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
 
-    // Smooth Lean
-    CurrentLean = FMath::FInterpTo(
+    // =========================
+    // SMOOTH LEAN
+    // =========================
+
+    CurrentLean =
+        FMath::FInterpTo(
+            CurrentLean,
+            TargetLean,
+            DeltaTime,
+            LeanSpeed
+        );
+
+    CurrentYawOffset =
+        FMath::FInterpTo(
+            CurrentYawOffset,
+            TargetYawOffset,
+            DeltaTime,
+            25.f
+        );
+
+    // =========================
+    // CAMERA LEAN
+    // =========================
+
+    FVector CameraLocation(
+        0.f,
         CurrentLean,
-        TargetLean,
-        DeltaTime,
-        LeanSpeed
+        60.f
     );
 
-    CurrentYawOffset = FMath::FInterpTo(
-        CurrentYawOffset,
-        TargetYawOffset,
-        DeltaTime,
-        25.f
+    FirstPersonCamera->SetRelativeLocation(
+        CameraLocation
     );
 
-    // Lean Position
-    FVector CameraLocation(0.f, CurrentLean, 60.f);
-    FirstPersonCamera->SetRelativeLocation(CameraLocation);
+    // =========================
+    // MOVEMENT STATE
+    // =========================
 
-    // Smooth ADS weapon movement
-    FVector TargetWeaponLocation = bIsADS ? ADSLocation : HipFireLocation;
+    FVector Velocity =
+        GetVelocity();
 
-    FVector NewWeaponLocation = FMath::VInterpTo(
-        WeaponPivot->GetRelativeLocation(),
-        TargetWeaponLocation,
-        DeltaTime,
-        ADSInterpolationSpeed
+    Velocity.Z =
+        0.f;
+
+    float MovementSpeed =
+        Velocity.Size();
+
+    bool bIsMoving =
+        MovementSpeed > 10.f;
+
+    bool bIsSprinting =
+        MovementSpeed > WalkSpeed + 50.f;
+
+    bool bIsGrounded =
+        GetCharacterMovement()->IsMovingOnGround();
+
+    // =========================
+    // BASE WEAPON POSITION
+    // =========================
+
+    FVector TargetBaseLocation =
+        bIsADS
+        ? ADSLocation
+        : HipFireLocation;
+
+    if (!bIsADS && bIsSprinting)
+    {
+        TargetBaseLocation +=
+            SprintWeaponOffset;
+    }
+
+    CurrentWeaponBaseLocation =
+        FMath::VInterpTo(
+            CurrentWeaponBaseLocation,
+            TargetBaseLocation,
+            DeltaTime,
+            ADSInterpolationSpeed
+        );
+
+    // =========================
+    // WEAPON SWAY
+    // =========================
+
+    float CurrentLookYaw =
+        GetControlRotation().Yaw;
+
+    float CurrentLookPitch =
+        GetControlRotation().Pitch;
+
+    float LookYawDelta =
+        FMath::FindDeltaAngleDegrees(
+            PreviousLookYaw,
+            CurrentLookYaw
+        );
+
+    float LookPitchDelta =
+        FMath::FindDeltaAngleDegrees(
+            PreviousLookPitch,
+            CurrentLookPitch
+        );
+
+    PreviousLookYaw =
+        CurrentLookYaw;
+
+    PreviousLookPitch =
+        CurrentLookPitch;
+
+    float SwayX =
+        FMath::Clamp(
+            LookYawDelta * SwayAmount,
+            -MaxSway,
+            MaxSway
+        );
+
+    float SwayZ =
+        FMath::Clamp(
+            -LookPitchDelta * SwayAmount,
+            -MaxSway,
+            MaxSway
+        );
+
+    FVector TargetSwayOffset(
+        SwayX,
+        0.f,
+        SwayZ
     );
 
-    WeaponPivot->SetRelativeLocation(NewWeaponLocation);
+    CurrentSwayOffset =
+        FMath::VInterpTo(
+            CurrentSwayOffset,
+            TargetSwayOffset,
+            DeltaTime,
+            SwaySpeed
+        );
 
-    // Lean Rotation
-    float Roll = (CurrentLean / LeanOffset) * LeanAngle;
+    // =========================
+    // MOVEMENT WEAPON BOB
+    // =========================
+
+    FVector TargetBobOffset =
+        FVector::ZeroVector;
+
+    if (bIsMoving && bIsGrounded)
+    {
+        float CurrentBobSpeed =
+            bIsSprinting
+            ? SprintBobSpeed
+            : BobSpeed;
+
+        float CurrentBobAmount =
+            bIsSprinting
+            ? SprintBobAmount
+            : BobAmount;
+
+        BobTime +=
+            DeltaTime *
+            CurrentBobSpeed;
+
+        float BobVertical =
+            FMath::Sin(BobTime) *
+            CurrentBobAmount;
+
+        float BobHorizontal =
+            FMath::Cos(
+                BobTime * 0.5f
+            ) *
+            CurrentBobAmount *
+            0.5f;
+
+        TargetBobOffset =
+            FVector(
+                0.f,
+                BobHorizontal,
+                BobVertical
+            );
+    }
+    else
+    {
+        BobTime =
+            0.f;
+    }
+
+    CurrentBobOffset =
+        FMath::VInterpTo(
+            CurrentBobOffset,
+            TargetBobOffset,
+            DeltaTime,
+            10.f
+        );
+
+    // =========================
+    // IDLE WEAPON MOTION
+    // =========================
+
+    FVector TargetIdleOffset =
+        FVector::ZeroVector;
+
+    if (!bIsMoving &&
+        !bIsSprinting &&
+        !bIsADS &&
+        bIsGrounded &&
+        !bIsSwitchingWeapon)
+    {
+        IdleMotionTime +=
+            DeltaTime *
+            IdleMotionSpeed;
+
+        float IdleVertical =
+            FMath::Sin(
+                IdleMotionTime
+            ) *
+            IdleMotionAmount;
+
+        float IdleHorizontal =
+            FMath::Cos(
+                IdleMotionTime * 0.5f
+            ) *
+            IdleMotionAmount *
+            0.5f;
+
+        TargetIdleOffset =
+            FVector(
+                0.f,
+                IdleHorizontal,
+                IdleVertical
+            );
+    }
+    else
+    {
+        IdleMotionTime =
+            0.f;
+    }
+
+    CurrentIdleOffset =
+        FMath::VInterpTo(
+            CurrentIdleOffset,
+            TargetIdleOffset,
+            DeltaTime,
+            6.f
+        );
+
+    // =========================
+    // FIRE WEAPON KICK
+    // =========================
+
+    CurrentFireWeaponKick =
+        FMath::FInterpTo(
+            CurrentFireWeaponKick,
+            TargetFireWeaponKick,
+            DeltaTime,
+            FireWeaponKickSpeed
+        );
+
+    TargetFireWeaponKick =
+        FMath::FInterpTo(
+            TargetFireWeaponKick,
+            0.f,
+            DeltaTime,
+            FireWeaponKickSpeed
+        );
+
+    FVector FireKickOffset(
+        -CurrentFireWeaponKick,
+        0.f,
+        0.f
+    );
+
+    // =========================
+    // WEAPON SWITCHING
+    // =========================
+
+    FVector SwitchOffset =
+        FVector::ZeroVector;
+
+    if (bIsSwitchingWeapon &&
+        PendingWeapon)
+    {
+        WeaponSwitchTime +=
+            DeltaTime;
+
+        float SwitchProgress =
+            FMath::Clamp(
+                WeaponSwitchTime /
+                WeaponSwitchDuration,
+                0.f,
+                1.f
+            );
+
+        float SwitchAmount = 0.f;
+
+        if (SwitchProgress < 0.5f)
+        {
+            // Lower weapon
+            SwitchAmount =
+                SwitchProgress / 0.5f;
+        }
+        else
+        {
+            // Raise weapon
+            SwitchAmount =
+                1.f -
+                ((SwitchProgress - 0.5f) / 0.5f);
+
+            // Perform actual swap once
+            if (EquippedWeapon != PendingWeapon)
+            {
+                if (EquippedWeapon)
+                {
+                    EquippedWeapon->SetActorHiddenInGame(
+                        true
+                    );
+                }
+
+                EquippedWeapon =
+                    PendingWeapon;
+
+                EquippedWeapon->SetActorHiddenInGame(
+                    false
+                );
+
+                UpdateAmmoUI();
+            }
+        }
+
+        SwitchOffset =
+            WeaponSwitchOffset *
+            SwitchAmount;
+
+        if (SwitchProgress >= 1.f)
+        {
+            bIsSwitchingWeapon =
+                false;
+
+            PendingWeapon =
+                nullptr;
+
+            WeaponSwitchTime =
+                0.f;
+        }
+    }
+
+    // =========================
+    // FINAL WEAPON POSITION
+    // =========================
+
+    FVector FinalWeaponLocation =
+        CurrentWeaponBaseLocation;
+
+    FinalWeaponLocation +=
+        CurrentSwayOffset;
+
+    FinalWeaponLocation +=
+        CurrentBobOffset;
+
+    FinalWeaponLocation +=
+        CurrentIdleOffset;
+
+    FinalWeaponLocation +=
+        FireKickOffset;
+
+    FinalWeaponLocation +=
+        SwitchOffset;
+
+    WeaponPivot->SetRelativeLocation(
+        FinalWeaponLocation
+    );
+
+    // =========================
+    // LEAN ROTATION
+    // =========================
+
+    float Roll =
+        (CurrentLean / LeanOffset) *
+        LeanAngle;
+
     FirstPersonCamera->SetRelativeRotation(
-        FRotator(0.f, 0.f, Roll)
+        FRotator(
+            0.f,
+            0.f,
+            Roll
+        )
     );
 
-    // Smooth Recoil
-    CurrentRecoilOffset = FMath::FInterpTo(
-        CurrentRecoilOffset,
-        TargetRecoilOffset,
-        DeltaTime,
-        25.f
+    // =========================
+    // SMOOTH RECOIL
+    // =========================
+
+    CurrentRecoilOffset =
+        FMath::FInterpTo(
+            CurrentRecoilOffset,
+            TargetRecoilOffset,
+            DeltaTime,
+            25.f
+        );
+
+    float DeltaPitch =
+        CurrentRecoilOffset -
+        PreviousRecoilOffset;
+
+    float DeltaYaw =
+        CurrentYawOffset -
+        PreviousYawOffset;
+
+    AddControllerPitchInput(
+        -DeltaPitch
     );
 
-    float DeltaPitch = CurrentRecoilOffset - PreviousRecoilOffset;
-    float DeltaYaw = CurrentYawOffset - PreviousYawOffset;
-
-    AddControllerPitchInput(-DeltaPitch);
-    AddControllerYawInput(DeltaYaw);
-
-    PreviousRecoilOffset = CurrentRecoilOffset;
-    PreviousYawOffset = CurrentYawOffset;
-
-    // Recover recoil
-    TargetRecoilOffset = FMath::FInterpTo(
-        TargetRecoilOffset,
-        0.f,
-        DeltaTime,
-        EquippedWeapon ? EquippedWeapon->GetRecoilRecoverySpeed() : 10.f
+    AddControllerYawInput(
+        DeltaYaw
     );
 
-    TargetYawOffset = FMath::FInterpTo(
-        TargetYawOffset,
-        0.f,
-        DeltaTime,
-        EquippedWeapon ? EquippedWeapon->GetRecoilRecoverySpeed() : 10.f
+    PreviousRecoilOffset =
+        CurrentRecoilOffset;
+
+    PreviousYawOffset =
+        CurrentYawOffset;
+
+    // =========================
+    // RECOVER RECOIL
+    // =========================
+
+    TargetRecoilOffset =
+        FMath::FInterpTo(
+            TargetRecoilOffset,
+            0.f,
+            DeltaTime,
+            EquippedWeapon
+            ? EquippedWeapon->GetRecoilRecoverySpeed()
+            : 10.f
+        );
+
+    TargetYawOffset =
+        FMath::FInterpTo(
+            TargetYawOffset,
+            0.f,
+            DeltaTime,
+            EquippedWeapon
+            ? EquippedWeapon->GetRecoilRecoverySpeed()
+            : 10.f
+        );
+
+    // =========================
+    // SMOOTH ADS CAMERA ZOOM
+    // =========================
+
+    float TargetFOV =
+        bIsADS
+        ? ADSFOV
+        : HipFOV;
+
+    float NewFOV =
+        FMath::FInterpTo(
+            FirstPersonCamera->FieldOfView,
+            TargetFOV,
+            DeltaTime,
+            FOVInterpolationSpeed
+        );
+
+    FirstPersonCamera->SetFieldOfView(
+        NewFOV
     );
-
-    // Smooth ADS camera zoom
-    float TargetFOV = bIsADS ? ADSFOV : HipFOV;
-
-    float NewFOV = FMath::FInterpTo(
-        FirstPersonCamera->FieldOfView,
-        TargetFOV,
-        DeltaTime,
-        FOVInterpolationSpeed
-    );
-
-    FirstPersonCamera->SetFieldOfView(NewFOV);
 }
+
+
+// =========================
+// FIRE
+// =========================
 
 void APlayerOperator::StartFire()
 {
@@ -355,6 +985,11 @@ void APlayerOperator::StopFire()
     }
 }
 
+
+// =========================
+// RECOIL
+// =========================
+
 void APlayerOperator::AddRecoil()
 {
     if (!EquippedWeapon)
@@ -362,24 +997,65 @@ void APlayerOperator::AddRecoil()
         return;
     }
 
-    float RecoilMultiplier = bIsADS ? ADSRecoilMultiplier : 1.0f;
+    float RecoilMultiplier =
+        bIsADS
+        ? ADSRecoilMultiplier
+        : 1.0f;
 
-    // Vertical recoil
-    TargetRecoilOffset += EquippedWeapon->GetVerticalRecoil() * RecoilMultiplier;
-    TargetRecoilOffset = FMath::Clamp(TargetRecoilOffset, 0.f, 15.f);
+    TargetRecoilOffset +=
+        EquippedWeapon->GetVerticalRecoil() *
+        RecoilMultiplier;
 
-    // Horizontal recoil
-    TargetYawOffset += FMath::FRandRange(
-        -EquippedWeapon->GetHorizontalRecoil(),
-        EquippedWeapon->GetHorizontalRecoil()
-    ) * RecoilMultiplier;
+    TargetRecoilOffset =
+        FMath::Clamp(
+            TargetRecoilOffset,
+            0.f,
+            15.f
+        );
 
-    TargetYawOffset = FMath::Clamp(
-        TargetYawOffset,
-        -4.f,
-        4.f
-    );
+    TargetYawOffset +=
+        FMath::FRandRange(
+            -EquippedWeapon->GetHorizontalRecoil(),
+            EquippedWeapon->GetHorizontalRecoil()
+        ) *
+        RecoilMultiplier;
+
+    TargetYawOffset =
+        FMath::Clamp(
+            TargetYawOffset,
+            -4.f,
+            4.f
+        );
 }
+
+
+// =========================
+// FIRE WEAPON KICK
+// =========================
+
+void APlayerOperator::AddFireWeaponKick()
+{
+    float KickMultiplier =
+        bIsADS
+        ? 0.5f
+        : 1.0f;
+
+    TargetFireWeaponKick +=
+        FireWeaponKickAmount *
+        KickMultiplier;
+
+    TargetFireWeaponKick =
+        FMath::Clamp(
+            TargetFireWeaponKick,
+            0.f,
+            FireWeaponKickAmount * 2.f
+        );
+}
+
+
+// =========================
+// ADS
+// =========================
 
 void APlayerOperator::StartADS()
 {
@@ -393,7 +1069,13 @@ void APlayerOperator::StartADS()
         return;
     }
 
-    bIsADS = true;
+    if (bIsSwitchingWeapon)
+    {
+        return;
+    }
+
+    bIsADS =
+        true;
 
     if (HUDWidget)
     {
@@ -403,13 +1085,19 @@ void APlayerOperator::StartADS()
 
 void APlayerOperator::StopADS()
 {
-    bIsADS = false;
+    bIsADS =
+        false;
 
     if (HUDWidget)
     {
         HUDWidget->ShowCrosshair();
     }
 }
+
+
+// =========================
+// RELOAD
+// =========================
 
 void APlayerOperator::ReloadWeapon()
 {
@@ -419,6 +1107,11 @@ void APlayerOperator::ReloadWeapon()
     }
 }
 
+
+// =========================
+// WEAPON / HUD
+// =========================
+
 AWeaponBase* APlayerOperator::GetEquippedWeapon() const
 {
     return EquippedWeapon;
@@ -426,7 +1119,8 @@ AWeaponBase* APlayerOperator::GetEquippedWeapon() const
 
 void APlayerOperator::UpdateAmmoUI()
 {
-    if (HUDWidget && EquippedWeapon)
+    if (HUDWidget &&
+        EquippedWeapon)
     {
         HUDWidget->SetAmmo(
             EquippedWeapon->GetCurrentAmmo(),
@@ -434,6 +1128,11 @@ void APlayerOperator::UpdateAmmoUI()
         );
     }
 }
+
+
+// =========================
+// DAMAGE
+// =========================
 
 float APlayerOperator::TakeDamage(
     float DamageAmount,
@@ -447,7 +1146,8 @@ float APlayerOperator::TakeDamage(
         return 0.0f;
     }
 
-    CurrentHealth -= DamageAmount;
+    CurrentHealth -=
+        DamageAmount;
 
     if (HUDWidget)
     {
@@ -464,7 +1164,9 @@ float APlayerOperator::TakeDamage(
 
     if (CurrentHealth <= 0.0f)
     {
-        CurrentHealth = 0.0f;
+        CurrentHealth =
+            0.0f;
+
         Die();
     }
 
@@ -481,6 +1183,11 @@ void APlayerOperator::DebugTakeDamage()
     );
 }
 
+
+// =========================
+// DEATH
+// =========================
+
 void APlayerOperator::Die()
 {
     if (bIsDead)
@@ -488,9 +1195,14 @@ void APlayerOperator::Die()
         return;
     }
 
-    bIsDead = true;
+    bIsDead =
+        true;
 
-    UE_LOG(LogTemp, Warning, TEXT("PLAYER DEAD"));
+    UE_LOG(
+        LogTemp,
+        Warning,
+        TEXT("PLAYER DEAD")
+    );
 
     if (HUDWidget)
     {
@@ -499,15 +1211,25 @@ void APlayerOperator::Die()
 
     DisableInput(nullptr);
 
-    if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+    if (APlayerController* PlayerController =
+        Cast<APlayerController>(GetController()))
     {
-        PlayerController->bShowMouseCursor = true;
+        PlayerController->bShowMouseCursor =
+            true;
 
         FInputModeUIOnly InputMode;
-        InputMode.SetWidgetToFocus(HUDWidget->TakeWidget());
-        InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 
-        PlayerController->SetInputMode(InputMode);
+        InputMode.SetWidgetToFocus(
+            HUDWidget->TakeWidget()
+        );
+
+        InputMode.SetLockMouseToViewportBehavior(
+            EMouseLockMode::DoNotLock
+        );
+
+        PlayerController->SetInputMode(
+            InputMode
+        );
     }
 
     if (EquippedWeapon)
@@ -518,27 +1240,46 @@ void APlayerOperator::Die()
     GetCharacterMovement()->DisableMovement();
 }
 
-void APlayerOperator::PossessedBy(AController* NewController)
+
+// =========================
+// POSSESSION
+// =========================
+
+void APlayerOperator::PossessedBy(
+    AController* NewController
+)
 {
-    Super::PossessedBy(NewController);
+    Super::PossessedBy(
+        NewController
+    );
 
-    if (APlayerController* PlayerController = Cast<APlayerController>(NewController))
+    if (APlayerController* PlayerController =
+        Cast<APlayerController>(NewController))
     {
-        // Restore actor input
-        EnableInput(PlayerController);
+        EnableInput(
+            PlayerController
+        );
 
-        // Restore controller input
-        PlayerController->SetIgnoreMoveInput(false);
-        PlayerController->SetIgnoreLookInput(false);
+        PlayerController->SetIgnoreMoveInput(
+            false
+        );
 
-        // Restore movement
-        GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+        PlayerController->SetIgnoreLookInput(
+            false
+        );
 
-        // Restore FPS input mode
-        PlayerController->bShowMouseCursor = false;
+        GetCharacterMovement()->SetMovementMode(
+            MOVE_Walking
+        );
+
+        PlayerController->bShowMouseCursor =
+            false;
 
         FInputModeGameOnly InputMode;
-        PlayerController->SetInputMode(InputMode);
+
+        PlayerController->SetInputMode(
+            InputMode
+        );
 
         UE_LOG(
             LogTemp,
@@ -548,10 +1289,20 @@ void APlayerOperator::PossessedBy(AController* NewController)
     }
 }
 
+
+// =========================
+// HUD
+// =========================
+
 UFPSHUDWidget* APlayerOperator::GetHUDWidget() const
 {
     return HUDWidget;
 }
+
+
+// =========================
+// MISSION COMPLETE
+// =========================
 
 void APlayerOperator::SetMissionCompleteState()
 {
@@ -570,20 +1321,25 @@ void APlayerOperator::SetMissionCompleteState()
     if (APlayerController* PlayerController =
         Cast<APlayerController>(GetController()))
     {
-        PlayerController->bShowMouseCursor = true;
+        PlayerController->bShowMouseCursor =
+            true;
 
         FInputModeUIOnly InputMode;
 
         if (HUDWidget)
         {
-            InputMode.SetWidgetToFocus(HUDWidget->TakeWidget());
+            InputMode.SetWidgetToFocus(
+                HUDWidget->TakeWidget()
+            );
         }
 
         InputMode.SetLockMouseToViewportBehavior(
             EMouseLockMode::DoNotLock
         );
 
-        PlayerController->SetInputMode(InputMode);
+        PlayerController->SetInputMode(
+            InputMode
+        );
     }
 
     GetCharacterMovement()->DisableMovement();
@@ -595,11 +1351,18 @@ void APlayerOperator::SetMissionCompleteState()
     );
 }
 
+
+// =========================
+// WEAPON EQUIP
+// =========================
+
 void APlayerOperator::EquipRifle()
 {
     if (RifleWeapon)
     {
-        SwitchWeapon(RifleWeapon);
+        SwitchWeapon(
+            RifleWeapon
+        );
     }
 }
 
@@ -607,13 +1370,38 @@ void APlayerOperator::EquipPistol()
 {
     if (PistolWeapon)
     {
-        SwitchWeapon(PistolWeapon);
+        SwitchWeapon(
+            PistolWeapon
+        );
     }
 }
 
-void APlayerOperator::SwitchWeapon(AWeaponBase* NewWeapon)
+void APlayerOperator::EquipShotgun()
 {
-    if (!NewWeapon || NewWeapon == EquippedWeapon)
+    if (ShotgunWeapon)
+    {
+        SwitchWeapon(
+            ShotgunWeapon
+        );
+    }
+}
+
+
+// =========================
+// WEAPON SWITCH
+// =========================
+
+void APlayerOperator::SwitchWeapon(
+    AWeaponBase* NewWeapon
+)
+{
+    if (!NewWeapon ||
+        NewWeapon == EquippedWeapon)
+    {
+        return;
+    }
+
+    if (bIsSwitchingWeapon)
     {
         return;
     }
@@ -621,28 +1409,22 @@ void APlayerOperator::SwitchWeapon(AWeaponBase* NewWeapon)
     if (EquippedWeapon)
     {
         EquippedWeapon->StopFire();
-        EquippedWeapon->SetActorHiddenInGame(true);
     }
 
-    EquippedWeapon = NewWeapon;
+    PendingWeapon =
+        NewWeapon;
 
-    EquippedWeapon->SetActorHiddenInGame(false);
+    bIsSwitchingWeapon =
+        true;
 
-    // Reset ADS when switching
-    bIsADS = false;
+    WeaponSwitchTime =
+        0.f;
+
+    bIsADS =
+        false;
 
     if (HUDWidget)
     {
         HUDWidget->ShowCrosshair();
-    }
-
-    UpdateAmmoUI();
-}
-
-void APlayerOperator::EquipShotgun()
-{
-    if (ShotgunWeapon)
-    {
-        SwitchWeapon(ShotgunWeapon);
     }
 }

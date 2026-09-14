@@ -6,6 +6,7 @@
 #include "GameFramework/Controller.h"
 #include "NiagaraFunctionLibrary.h"
 #include "PlayerOperator.h"
+#include "Components/AudioComponent.h"
 
 AWeaponBase::AWeaponBase()
 {
@@ -105,8 +106,10 @@ void AWeaponBase::Fire()
     // =========================
 
     FVector CameraStart = CameraLocation;
+
     FVector CameraEnd =
-        CameraStart + (CameraRotation.Vector() * Range);
+        CameraStart +
+        (CameraRotation.Vector() * Range);
 
     FHitResult CameraHit;
 
@@ -138,28 +141,39 @@ void AWeaponBase::Fire()
         FVector BaseDirection =
             (TargetPoint - MuzzleLocation).GetSafeNormal();
 
-        for (int32 PelletIndex = 0; PelletIndex < PelletCount; PelletIndex++)
+        for (int32 PelletIndex = 0;
+            PelletIndex < PelletCount;
+            PelletIndex++)
         {
             FRotator PelletRotation =
                 BaseDirection.Rotation();
 
             PelletRotation.Yaw +=
-                FMath::FRandRange(-SpreadAngle, SpreadAngle);
+                FMath::FRandRange(
+                    -SpreadAngle,
+                    SpreadAngle
+                );
 
             PelletRotation.Pitch +=
-                FMath::FRandRange(-SpreadAngle, SpreadAngle);
+                FMath::FRandRange(
+                    -SpreadAngle,
+                    SpreadAngle
+                );
 
             FVector PelletDirection =
                 PelletRotation.Vector();
 
-            FVector TraceStart = MuzzleLocation;
+            FVector TraceStart =
+                MuzzleLocation;
 
             FVector TraceEnd =
-                TraceStart + (PelletDirection * Range);
+                TraceStart +
+                (PelletDirection * Range);
 
             FHitResult Hit;
 
             FCollisionQueryParams QueryParams;
+
             QueryParams.bReturnPhysicalMaterial = true;
 
             bool bHit =
@@ -173,7 +187,8 @@ void AWeaponBase::Fire()
 
             if (bHit)
             {
-                AActor* HitActor = Hit.GetActor();
+                AActor* HitActor =
+                    Hit.GetActor();
 
                 if (HitActor)
                 {
@@ -199,15 +214,18 @@ void AWeaponBase::Fire()
                     switch (SurfaceType)
                     {
                     case SurfaceType1:
-                        SelectedImpactEffect = ConcreteImpactEffect;
+                        SelectedImpactEffect =
+                            ConcreteImpactEffect;
                         break;
 
                     case SurfaceType2:
-                        SelectedImpactEffect = MetalImpactEffect;
+                        SelectedImpactEffect =
+                            MetalImpactEffect;
                         break;
 
                     case SurfaceType3:
-                        SelectedImpactEffect = WoodImpactEffect;
+                        SelectedImpactEffect =
+                            WoodImpactEffect;
                         break;
 
                     default:
@@ -249,14 +267,17 @@ void AWeaponBase::Fire()
         FVector ShotDirection =
             (TargetPoint - MuzzleLocation).GetSafeNormal();
 
-        FVector TraceStart = MuzzleLocation;
+        FVector TraceStart =
+            MuzzleLocation;
 
         FVector TraceEnd =
-            TraceStart + (ShotDirection * Range);
+            TraceStart +
+            (ShotDirection * Range);
 
         FHitResult Hit;
 
         FCollisionQueryParams QueryParams;
+
         QueryParams.bReturnPhysicalMaterial = true;
 
         bool bHit =
@@ -277,7 +298,8 @@ void AWeaponBase::Fire()
 
         if (bHit)
         {
-            AActor* HitActor = Hit.GetActor();
+            AActor* HitActor =
+                Hit.GetActor();
 
             if (HitActor)
             {
@@ -310,15 +332,18 @@ void AWeaponBase::Fire()
                 switch (SurfaceType)
                 {
                 case SurfaceType1:
-                    SelectedImpactEffect = ConcreteImpactEffect;
+                    SelectedImpactEffect =
+                        ConcreteImpactEffect;
                     break;
 
                 case SurfaceType2:
-                    SelectedImpactEffect = MetalImpactEffect;
+                    SelectedImpactEffect =
+                        MetalImpactEffect;
                     break;
 
                 case SurfaceType3:
-                    SelectedImpactEffect = WoodImpactEffect;
+                    SelectedImpactEffect =
+                        WoodImpactEffect;
                     break;
 
                 default:
@@ -352,7 +377,7 @@ void AWeaponBase::Fire()
     }
 
     // =========================
-    // RECOIL
+    // RECOIL + FIRE WEAPON KICK
     // =========================
 
     APlayerOperator* Player =
@@ -361,6 +386,7 @@ void AWeaponBase::Fire()
     if (Player)
     {
         Player->AddRecoil();
+        Player->AddFireWeaponKick();
     }
 
     // =========================
@@ -411,7 +437,8 @@ void AWeaponBase::StartFire()
     // AUTOMATIC
     // =========================
 
-    float FireDelay = 60.f / FireRate;
+    float FireDelay =
+        60.f / FireRate;
 
     GetWorldTimerManager().SetTimer(
         FireTimer,
@@ -426,7 +453,9 @@ void AWeaponBase::StopFire()
 {
     bIsFiring = false;
 
-    GetWorldTimerManager().ClearTimer(FireTimer);
+    GetWorldTimerManager().ClearTimer(
+        FireTimer
+    );
 }
 
 void AWeaponBase::Reload()
@@ -468,9 +497,36 @@ void AWeaponBase::Reload()
         TEXT("Reloading...")
     );
 
+    // =========================
+    // RELOAD SOUND
+    // =========================
+
+    if (ReloadAudioComponent)
+    {
+        ReloadAudioComponent->Stop();
+        ReloadAudioComponent = nullptr;
+    }
+
+    if (ReloadSound)
+    {
+        ReloadAudioComponent =
+            UGameplayStatics::SpawnSoundAttached(
+                ReloadSound,
+                RootComponent,
+                NAME_None,
+                FVector::ZeroVector,
+                EAttachLocation::KeepRelativeOffset,
+                false,
+                0.5f
+            );
+    }
+
+    // =========================
+    // SHELL-BY-SHELL RELOAD
+    // =========================
+
     if (bShellByShellReload)
     {
-        // One shell will be loaded every ReloadTime seconds.
         GetWorldTimerManager().SetTimer(
             ReloadTimer,
             this,
@@ -497,14 +553,28 @@ void AWeaponBase::Reload()
 
 void AWeaponBase::FinishReload()
 {
+    // =========================
+    // SHELL-BY-SHELL RELOAD
+    // =========================
+
     if (bShellByShellReload)
     {
         if (CurrentAmmo >= MagazineSize ||
             ReserveAmmo <= 0)
         {
-            GetWorldTimerManager().ClearTimer(ReloadTimer);
+            GetWorldTimerManager().ClearTimer(
+                ReloadTimer
+            );
 
             bIsReloading = false;
+
+            // Stop reload sound only when
+            // the entire shotgun reload is complete.
+            if (ReloadAudioComponent)
+            {
+                ReloadAudioComponent->Stop();
+                ReloadAudioComponent = nullptr;
+            }
 
             if (APlayerOperator* Player =
                 Cast<APlayerOperator>(GetOwner()))
@@ -543,9 +613,19 @@ void AWeaponBase::FinishReload()
         if (CurrentAmmo >= MagazineSize ||
             ReserveAmmo <= 0)
         {
-            GetWorldTimerManager().ClearTimer(ReloadTimer);
+            GetWorldTimerManager().ClearTimer(
+                ReloadTimer
+            );
 
             bIsReloading = false;
+
+            // Stop reload sound when the
+            // final shell has been inserted.
+            if (ReloadAudioComponent)
+            {
+                ReloadAudioComponent->Stop();
+                ReloadAudioComponent = nullptr;
+            }
 
             UE_LOG(
                 LogTemp,
@@ -562,6 +642,14 @@ void AWeaponBase::FinishReload()
     // =========================
     // NORMAL MAGAZINE RELOAD
     // =========================
+
+    // Normal reload reaches FinishReload()
+    // only once, so stop the sound here.
+    if (ReloadAudioComponent)
+    {
+        ReloadAudioComponent->Stop();
+        ReloadAudioComponent = nullptr;
+    }
 
     int32 AmmoNeeded =
         MagazineSize - CurrentAmmo;

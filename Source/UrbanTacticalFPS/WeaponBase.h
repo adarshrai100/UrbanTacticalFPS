@@ -10,6 +10,7 @@
 #include "WeaponBase.generated.h"
 
 class USoundBase;
+class UAudioComponent;
 
 UCLASS()
 class URBANTACTICALFPS_API AWeaponBase : public AActor
@@ -159,4 +160,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "Audio")
 	TObjectPtr<USoundBase> FireSound;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Audio")
+	TObjectPtr<USoundBase> ReloadSound;
+
+	UPROPERTY()
+	TObjectPtr<UAudioComponent> ReloadAudioComponent;
 };
