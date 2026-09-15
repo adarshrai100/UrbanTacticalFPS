@@ -33,12 +33,13 @@ void AEnemyAIController::Tick(float DeltaTime)
             PlayerCharacter->GetActorLocation()
         );
 
-
+    // Player is outside the enemy's detection range.
     if (Distance > Enemy->DetectionRange)
     {
         StopMovement();
         ClearFocus(EAIFocusPriority::Gameplay);
         Enemy->StopAttacking();
+
         return;
     }
 
@@ -47,12 +48,9 @@ void AEnemyAIController::Tick(float DeltaTime)
 
     if (!NavSystem)
     {
-
         return;
     }
 
-    // Use the player's actual actor location.
-    // Large search extent handles capsule height / uneven floor levels.
     const FVector PlayerLocation =
         PlayerCharacter->GetActorLocation();
 
@@ -65,22 +63,25 @@ void AEnemyAIController::Tick(float DeltaTime)
             FVector(500.f, 500.f, 1000.f)
         );
 
-
     if (!bPlayerOnNavMesh)
     {
         Enemy->StopAttacking();
+
         return;
     }
 
-
+    // Move toward the player while outside attack range.
     if (Distance > Enemy->AttackRange)
     {
         SetFocus(PlayerCharacter);
 
-        EPathFollowingRequestResult::Type MoveResult =
+        // Only request a new move when there isn't already
+        // an active path-following request.
+        if (!GetPathFollowingComponent()->HasValidPath())
+        {
             MoveToLocation(
                 PlayerNavLocation.Location,
-                150.f,
+                MoveAcceptanceDistance,
                 true,
                 true,
                 true,
@@ -88,13 +89,13 @@ void AEnemyAIController::Tick(float DeltaTime)
                 nullptr,
                 true
             );
-
-
+        }
 
         Enemy->StopAttacking();
     }
     else
     {
+        // Inside attack range.
         StopMovement();
 
         SetFocus(PlayerCharacter);

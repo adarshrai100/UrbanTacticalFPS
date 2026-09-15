@@ -51,7 +51,7 @@ public:
     bool bIsAttacking = false;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat")
-    float DetectionRange = 2000.f;
+    float DetectionRange = 1200.f;
 
     UPROPERTY(EditDefaultsOnly, Category = "Animation")
     TObjectPtr<UAnimMontage> HitReactionMontage;
